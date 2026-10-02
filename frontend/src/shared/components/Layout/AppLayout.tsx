@@ -47,7 +47,6 @@ const NAV_ITEMS: NavItem[] = [
     name: "Airspace Reservation",
     path: "/reservations",
     icon: CalendarCheck,
-    comingSoon: true,
     assignedTo: "Shravan",
     allowedRoles: ["FLEET_OPERATOR", "DISPATCHER"],
   },

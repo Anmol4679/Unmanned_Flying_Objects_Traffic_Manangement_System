@@ -5,6 +5,7 @@ import { RequireRole } from "./shared/components/RequireRole";
 import { AppLayout } from "./shared/components/Layout/AppLayout";
 import { AuthPage } from "./shared/pages/AuthPage";
 import { PlaceholderPage } from "./shared/components/PlaceholderPage";
+import { ReservationsPage } from "./reservations";
 
 export const App: React.FC = () => {
   return (
@@ -78,12 +79,7 @@ export const App: React.FC = () => {
               path="/reservations"
               element={
                 <RequireRole roles={["FLEET_OPERATOR", "DISPATCHER"]}>
-                  <PlaceholderPage
-                    title="Airspace Reservation & Routing"
-                    description="Dynamic corridor booking, conflict detection, and departure clearance slots."
-                    owner="Shravan"
-                    isComingSoon
-                  />
+                  <ReservationsPage />
                 </RequireRole>
               }
             />

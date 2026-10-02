@@ -6,10 +6,21 @@ from modules.identity.auth import limiter
 from modules.identity.routes import auth_router, operators_router, audit_router
 from modules.fleet.routes import drones_router
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(
     title="Unmanned Flying Objects Traffic Management System (UTM)",
     description="FastAPI + PostgreSQL backend for drone traffic management, identity, and fleet operations.",
     version="1.0.0",
+)
+
+# Enable CORS for local development
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Attach rate limiter to app state and register error handler

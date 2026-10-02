@@ -5,6 +5,7 @@ from modules.fleet.models import (
     DroneQuadcopter,
     DroneEmergencyMedical,
 )
+from modules.reservations.models import AirspaceSector, TimeSlot, Reservation
 
 __all__ = [
     "Operator",
@@ -13,4 +14,8 @@ __all__ = [
     "DroneFixedWing",
     "DroneQuadcopter",
     "DroneEmergencyMedical",
+    "AirspaceSector",
+    "TimeSlot",
+    "Reservation",
 ]
+

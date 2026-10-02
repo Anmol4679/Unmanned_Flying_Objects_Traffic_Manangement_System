@@ -5,6 +5,7 @@ from slowapi.errors import RateLimitExceeded
 from modules.identity.auth import limiter
 from modules.identity.routes import auth_router, operators_router, audit_router
 from modules.fleet.routes import drones_router
+from modules.reservations.routes import router as reservations_router
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -32,6 +33,7 @@ app.include_router(auth_router)
 app.include_router(operators_router)
 app.include_router(drones_router)
 app.include_router(audit_router)
+app.include_router(reservations_router)
 
 
 @app.get("/", tags=["health"])

@@ -16,6 +16,16 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path aliases — must match vite.config.ts resolve.alias */
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@shared/*": ["./src/shared/*"],
+      "shared": ["./src/shared/index.ts"],
+      "shared/*": ["./src/shared/*"]
+    },
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -24,3 +34,4 @@
   },
   "include": ["src"]
 }
+

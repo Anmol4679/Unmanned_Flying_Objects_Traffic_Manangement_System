@@ -17,6 +17,8 @@ from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.dirname(__file__))
 from database import SessionLocal
+from modules.identity.models import Operator
+from modules.fleet.models import Drone
 from modules.reservations.models import AirspaceSector, TimeSlot
 
 SECTORS = [

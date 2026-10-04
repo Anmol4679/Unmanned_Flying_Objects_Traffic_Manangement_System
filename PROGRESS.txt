@@ -1,0 +1,540 @@
+================================================================================
+UNMANNED FLYING OBJECTS TRAFFIC MANAGEMENT SYSTEM (UTM)
+PROJECT IMPLEMENTATION PROGRESS REPORT & ARCHITECTURAL SPECIFICATION
+================================================================================
+Generated On: 2026-10-04
+Repository: https://github.com/Anmol4679/Unmanned_Flying_Objects_Traffic_Manangement_System
+Branch: main
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. Executive Summary & Architecture Overview
+2. Team Contributors & Attribution Matrix
+3. Chronological Git Commit History
+4. Module-by-Module Detailed Implementation
+   4.1. Module 1: Identity, Authentication & Role-Based Access Control (RBAC)
+   4.2. Module 2: Fleet Management & Polymorphic Drone Subtypes
+   4.3. Module 3: Airspace Sector & Time-Slot Reservation Engine
+   4.4. Module 4: High-Concurrency Lock Engine & Emergency Preemption
+   4.5. Shared Frontend App Shell, Design System & Navigation
+   4.6. Database Migrations, Seed Data & Spatial/Temporal Indexes
+   4.7. Automated Test Suites & Concurrency Stress Testing
+5. Complete Directory & File Manifest
+6. Running & Verification Instructions
+7. Future Roadmap & Pending Modules
+
+================================================================================
+1. EXECUTIVE SUMMARY & ARCHITECTURE OVERVIEW
+================================================================================
+The Unmanned Flying Objects Traffic Management System (UTM) is an enterprise-grade
+distributed platform designed for civil aviation authorities, fleet operators,
+and dispatchers to manage low-altitude airspace safely and deterministically.
+
+Key Architectural Characteristics:
+- Backend: FastAPI (Python 3.11+ / ASGI), SQLAlchemy 2.0 ORM, psycopg3,
+  SlowAPI rate limiting, python-jose (JWT), passlib with bcrypt hashing.
+- Database: PostgreSQL with raw SQL spatial extensions, GiST bounding box
+  indexes, B+Tree temporal indexing, and Alembic database migrations.
+- Frontend: React 19 + TypeScript + Vite, Tailwind CSS, Lucide React icons,
+  React Router DOM v7, Custom Auth & RBAC Route Guard System.
+- Concurrency Engine: Pessimistic locking (`SELECT ... FOR UPDATE`) preventing
+  airspace sector overbooking, accompanied by an emergency preemption pipeline.
+
+================================================================================
+2. TEAM CONTRIBUTORS & ATTRIBUTION MATRIX
+================================================================================
+
+--------------------------------------------------------------------------------
+CONTRIBUTOR 1: Anmol Saluja (Anmol4679) <anmolslj@gmail.com>
+--------------------------------------------------------------------------------
+Core Responsibilities & Implemented Features:
+1. Repository Architecture & Baseline Monorepo Setup:
+   - Configured full project directory structure (backend, frontend, configs).
+   - Created baseline Alembic migrations and database connection architecture.
+2. Identity, Authentication & Security Module (Backend):
+   - Implemented Operator and AuditLog SQLAlchemy data models.
+   - Built JWT Bearer token generation, sliding refresh, and validation logic.
+   - Built bcrypt password hashing and SlowAPI rate limiting (5 req/min on login).
+   - Implemented RBAC dependencies (`get_current_operator`, `require_role`).
+   - Created API endpoints for registration, login, profile inspection, operator
+     listing, operator suspension, and regulatory audit logging.
+3. Fleet Management Engine (Backend):
+   - Implemented polymorphic Drone model with joined table inheritance for
+     specialized drone subtypes (Quadcopter, Fixed-Wing, Emergency Medical).
+   - Created atomic database transaction handlers for drone + subtype creation.
+   - Implemented drone listing, details retrieval, and status change endpoints.
+4. Shared Frontend Application Shell & Auth System (Frontend):
+   - Scaffolded Vite + React 19 + TypeScript build pipeline with Tailwind CSS.
+   - Built `AuthContext` with persistent JWT storage, auto-hydration, and login/logout.
+   - Built `RequireRole` RBAC route guard component with `Forbidden403` handling.
+   - Built `AppLayout` navigation shell featuring dynamic sidebar, role badges,
+     active route highlighting, and operator status display.
+   - Designed and styled the complete `AuthPage` (Tabbed Login & Registration form).
+   - Integrated top-level routing in `App.tsx`.
+
+--------------------------------------------------------------------------------
+CONTRIBUTOR 2: Shravan2307 <sp236903@gmail.com>
+--------------------------------------------------------------------------------
+Core Responsibilities & Implemented Features:
+1. Airspace Reservation & Concurrency Engine (Backend - Modules 3 & 4):
+   - Designed and implemented database models for `AirspaceSector`, `TimeSlot`,
+     and `Reservation`.
+   - Created Alembic migration `a1b2c3d4e5f6` with Spatial GiST bounding box
+     indexes and temporal B+Tree indexes.
+   - Built atomic reservation booking route utilizing `SELECT ... FOR UPDATE`
+     row-level locking to prevent race conditions during high-concurrency booking.
+   - Engineered emergency preemption algorithm to cancel lower-priority routine
+     flights when emergency medical or priority corridors are reserved.
+   - Implemented endpoints: Sector listing/creation, slot availability queries,
+     reservation creation, operator reservation history, reservation cancellation,
+     and emergency corridor preemption.
+   - Built database seeder `seed_reservations.py` with preconfigured city sectors.
+2. Airspace Reservation UI Module (Frontend):
+   - Built `ReservationsPage` master dashboard with tabs and real-time statistics.
+   - Built `SectorMap` component visualizing active sectors, altitudes, and capacities.
+   - Built `AvailabilityCalendar` for sector time-slot capacity inspection.
+   - Built `BookingForm` for selecting drones, priority levels, and instant booking.
+   - Built `EmergencyPreemption` modal for priority corridor overrides.
+   - Built `MyReservations` table with status badges and cancellation actions.
+3. Fleet Module Frontend & Backend Testing Suite:
+   - Built `frontend/src/fleet/index.tsx` Fleet Dashboard.
+   - Built `DroneList.tsx` showing drone telemetry, battery, and subtype specs.
+   - Built `RegisterDroneModal.tsx` supporting Quadcopter, Fixed-Wing, and Emergency specs.
+   - Built `types.ts` for strict typing of fleet domain objects.
+   - Built backend unit test suite (`backend/tests/test_fleet.py` and fixtures).
+   - Built concurrency load testing script (`backend/tests/concurrency_test.py`)
+     and reservation test suite (`backend/tests/test_reservations.py`).
+   - Created `.env.example` templates for root and backend environments.
+
+--------------------------------------------------------------------------------
+CONTRIBUTOR 3: Shlok (Assigned / In Progress)
+--------------------------------------------------------------------------------
+- Telemetry & Radar Map Module (Module 5):
+  - Planned: Real-time drone GPS streaming, WebSocket feeds, and geofence tracking.
+  - UI placeholder established in `App.tsx` at route `/telemetry`.
+
+================================================================================
+3. CHRONOLOGICAL GIT COMMIT HISTORY
+================================================================================
+
+Commit: 7f2903d (HEAD -> main, origin/main)
+Author: Anmol Saluja <anmolslj@gmail.com>
+Date:   Sun Oct 4 21:08:30 2026 +0530
+Subject: Merge pull request #3 from Shravan2307/feature/airspace-reservation-module
+Summary: Merged Frontend Fleet Module and Backend Fleet Test Suite.
+
+Commit: fa0cafa
+Author: Shravan2307 <sp236903@gmail.com>
+Date:   Sun Oct 4 15:37:43 2026 +0000
+Subject: feat(fleet): implement frontend fleet module and backend unit test suite
+Summary:
+- Added frontend fleet dashboard, drone listing, and multi-subtype drone creation modal.
+- Added comprehensive pytest suite for fleet API (`backend/tests/test_fleet.py`).
+- Enhanced `backend/tests/conftest.py` with automated auth fixtures.
+
+Commit: c693a95
+Author: Anmol Saluja <anmolslj@gmail.com>
+Date:   Sun Oct 4 00:30:16 2026 +0530
+Subject: Merge pull request #2 from Shravan2307/feature/airspace-reservation-module
+Summary: Merged documentation and environment variable templates.
+
+Commit: 36ef43d
+Author: Shravan2307 <sp236903@gmail.com>
+Date:   Sat Oct 3 18:28:49 2026 +0000
+Subject: docs(env): add .env.example environment variable templates for root and backend
+Summary: Created `.env.example` and `backend/.env.example` with standard defaults.
+
+Commit: f45a500
+Author: Anmol Saluja <anmolslj@gmail.com>
+Date:   Fri Oct 2 22:36:24 2026 +0530
+Subject: Merge pull request #1 from Shravan2307/feature/airspace-reservation-module
+Summary: Merged complete Airspace Reservation & Concurrency Engine (Modules 3 & 4).
+
+Commit: b9c87b1
+Author: Shravan2307 <sp236903@gmail.com>
+Date:   Fri Oct 2 16:57:03 2026 +0000
+Subject: feat(reservations): implement Airspace Reservation & Concurrency Engine (Modules 3 & 4)
+Summary:
+- Added `airspace_sector`, `time_slot`, and `reservation` models & Alembic migration.
+- Added GiST spatial and B+Tree temporal database indexes.
+- Implemented atomic reservation booking with `SELECT ... FOR UPDATE` row locking.
+- Added emergency corridor preemption and conflict resolution logic.
+- Built interactive frontend Airspace Reservation module with maps, calendars, and forms.
+- Added pytest suite and async concurrency load testing script.
+
+Commit: 1091199
+Author: Anmol4679 <anmolslj@gmail.com>
+Date:   Fri Oct 2 13:09:57 2026 +0530
+Subject: Add React+TS frontend with shared app shell, auth context, RBAC route guard, and layout
+Summary:
+- Initialized React 19 + TypeScript + Vite frontend application.
+- Configured Tailwind CSS and Lucide icons.
+- Built `AuthContext`, `RequireRole`, `Forbidden403`, and `AppLayout`.
+- Built full `AuthPage` with operator registration and login forms.
+
+Commit: 17731636
+Author: Anmol4679 <anmolslj@gmail.com>
+Date:   Fri Oct 2 11:48:06 2026 +0530
+Subject: Add auth and fleet management APIs with JWT, RBAC, atomic drone creation
+Summary:
+- Built FastAPI application with CORS and SlowAPI rate limiter.
+- Created `Operator`, `AuditLog`, `Drone`, and subtype models.
+- Implemented JWT token generation and role-based access control.
+- Built identity routes (`/api/auth/*`, `/api/operators/*`, `/api/audit-log`).
+- Built fleet routes (`/api/drones/*`).
+
+Commit: cad4839
+Author: Anmol4679 <anmolslj@gmail.com>
+Date:   Fri Oct 2 11:28:48 2026 +0530
+Subject: Add Alembic migrations and baseline schema
+Summary:
+- Configured `alembic.ini` and migration scripts.
+- Generated baseline migration `7b968ad5bcf1` for operators, drones, subtypes, and audit log.
+
+Commit: 02d8874
+Author: Anmol4679 <anmolslj@gmail.com>
+Date:   Tue Sep 15 12:17:41 2026 +0530
+Subject: Set up monorepo skeleton: backend/frontend folders, gitignore
+Summary: Created monorepo scaffolding and directory structure.
+
+Commit: 8f517f5
+Author: Anmol Saluja <anmolslj@gmail.com>
+Date:   Sun Sep 13 11:12:57 2026 +0530
+Subject: Initial commit
+Summary: Initial repository creation.
+
+================================================================================
+4. MODULE-BY-MODULE DETAILED IMPLEMENTATION
+================================================================================
+
+--------------------------------------------------------------------------------
+4.1. MODULE 1: IDENTITY, AUTHENTICATION & RBAC
+--------------------------------------------------------------------------------
+Primary Author: Anmol Saluja (Anmol4679)
+Backend Files:
+  - backend/modules/identity/models.py
+  - backend/modules/identity/schemas.py
+  - backend/modules/identity/auth.py
+  - backend/modules/identity/routes.py
+Frontend Files:
+  - frontend/src/shared/context/AuthContext.tsx
+  - frontend/src/shared/pages/AuthPage.tsx
+  - frontend/src/shared/components/RequireRole.tsx
+  - frontend/src/shared/components/Forbidden403.tsx
+  - frontend/src/shared/types/auth.ts
+
+Key Features & Specifications:
+- Data Models:
+  * `Operator`: id, username, email, hashed_password, full_name, organization,
+    role (REGULATOR, FLEET_OPERATOR, DISPATCHER), is_active, is_suspended, created_at.
+  * `AuditLog`: id, operator_id, action, target_type, target_id, details, ip_address, timestamp.
+- Security Architecture:
+  * Password Hashing: bcrypt with passlib CryptContext.
+  * Token Format: JWT (HMAC-SHA256) containing `sub` (username), `role`, `id`, and expiry.
+  * Rate Limiting: SlowAPI memory limiter enforcing 5 requests per minute on `/api/auth/login`.
+  * RBAC Enforcers: `require_role(["REGULATOR", ...])` FastAPI dependency.
+- Endpoints:
+  * POST /api/auth/register - Register a new operator (default role FLEET_OPERATOR).
+  * POST /api/auth/login - Authenticate credentials and issue JWT access token.
+  * GET  /api/operators/me - Retrieve profile information of the authenticated operator.
+  * GET  /api/operators - List all operators (Restricted to REGULATOR role).
+  * PATCH /api/operators/{id}/suspend - Suspend/unsuspend operator account (REGULATOR only).
+  * GET  /api/audit-log - View compliance and security audit logs (REGULATOR only).
+
+--------------------------------------------------------------------------------
+4.2. MODULE 2: FLEET MANAGEMENT & POLYMORPHIC DRONE SUBTYPES
+--------------------------------------------------------------------------------
+Primary Authors: Anmol Saluja (Backend Architecture), Shravan2307 (Frontend & Tests)
+Backend Files:
+  - backend/modules/fleet/models.py
+  - backend/modules/fleet/schemas.py
+  - backend/modules/fleet/routes.py
+  - backend/tests/test_fleet.py
+Frontend Files:
+  - frontend/src/fleet/index.tsx
+  - frontend/src/fleet/components/DroneList.tsx
+  - frontend/src/fleet/components/RegisterDroneModal.tsx
+  - frontend/src/fleet/types.ts
+
+Key Features & Specifications:
+- Data Models & Inheritance:
+  * `Drone` (Base Table): id, serial_number, model_name, manufacturer, operator_id,
+    status (ACTIVE, GROUNDED, IN_FLIGHT, MAINTENANCE), subtype_discriminator (QUADCOPTER,
+    FIXED_WING, EMERGENCY_MEDICAL), max_payload_kg, max_range_km, max_altitude_m, created_at.
+  * `QuadcopterSpec` (Subtype): drone_id, rotor_count, hover_efficiency_rating, obstacle_avoidance_type.
+  * `FixedWingSpec` (Subtype): drone_id, wingspan_m, glide_ratio, runway_required_m.
+  * `EmergencyMedicalSpec` (Subtype): drone_id, temperature_controlled_bay, defibrillator_equipped, priority_tier.
+- Business Logic:
+  * Atomic creation: Drone base record and corresponding subtype record created within
+    a single ACID transaction; rolls back completely on any validation error.
+  * Ownership filtering: Operators only view and control their own fleet; Regulators can view all.
+- Endpoints:
+  * POST /api/drones - Register a new drone with polymorphic subtype specifications.
+  * GET  /api/drones - List registered drones for the calling operator.
+  * GET  /api/drones/{id} - Get detailed specifications of a specific UAV.
+  * PATCH /api/drones/{id}/status - Update drone operational status.
+- Frontend Features:
+  * Modern grid/card view of fleet with real-time status badges.
+  * Type-safe registration modal supporting dynamic specification inputs based on subtype.
+
+--------------------------------------------------------------------------------
+4.3. MODULE 3: AIRSPACE SECTOR & TIME-SLOT RESERVATION ENGINE
+--------------------------------------------------------------------------------
+Primary Author: Shravan2307
+Backend Files:
+  - backend/modules/reservations/models.py
+  - backend/modules/reservations/schemas.py
+  - backend/modules/reservations/routes.py
+  - backend/seed_reservations.py
+Frontend Files:
+  - frontend/src/reservations/index.tsx
+  - frontend/src/reservations/components/SectorMap.tsx
+  - frontend/src/reservations/components/AvailabilityCalendar.tsx
+  - frontend/src/reservations/components/BookingForm.tsx
+  - frontend/src/reservations/components/MyReservations.tsx
+  - frontend/src/reservations/types.ts
+
+Key Features & Specifications:
+- Data Models:
+  * `AirspaceSector`: id, name, code, min_altitude_m, max_altitude_m, max_concurrent_drones,
+    min_lat, max_lat, min_lon, max_lon, is_active, created_at.
+  * `TimeSlot`: id, sector_id, start_time, end_time, capacity, current_bookings, is_locked.
+  * `Reservation`: id, operator_id, drone_id, sector_id, time_slot_id, status (PENDING,
+    APPROVED, REJECTED, CANCELLED, PREEMPTED), priority (ROUTINE, PRIORITY, EMERGENCY),
+    purpose, approved_at, cancelled_at, created_at.
+- Endpoints:
+  * GET  /api/reservations/sectors - Retrieve all active airspace sectors and spatial bounds.
+  * POST /api/reservations/sectors - Create a new airspace sector (Regulator only).
+  * GET  /api/reservations/availability - Query slot capacity for a given sector and time window.
+  * POST /api/reservations - Book an airspace reservation.
+  * GET  /api/reservations/my - Retrieve all reservations for the current operator.
+  * PATCH /api/reservations/{id}/cancel - Cancel an existing reservation.
+- Frontend Features:
+  * Interactive sector map displaying bounding boxes and concurrent capacity.
+  * Time-slot availability viewer with visual capacity bars.
+  * Instant reservation booking form linked to operator's active drones.
+
+--------------------------------------------------------------------------------
+4.4. MODULE 4: HIGH-CONCURRENCY LOCK ENGINE & EMERGENCY PREEMPTION
+--------------------------------------------------------------------------------
+Primary Author: Shravan2307
+Backend Files:
+  - backend/modules/reservations/routes.py
+  - backend/tests/concurrency_test.py
+  - backend/tests/test_reservations.py
+Frontend Files:
+  - frontend/src/reservations/components/EmergencyPreemption.tsx
+
+Key Features & Specifications:
+- Pessimistic Concurrency Locking:
+  * Time slots are fetched using `db.query(TimeSlot).filter(...).with_for_update().first()`.
+  * Locks the specific time slot row at PostgreSQL engine level until transaction commit.
+  * Guaranteed prevention of overbooking even under 100+ simultaneous requests.
+- Emergency Preemption Corridor Engine:
+  * When a reservation is marked as `EMERGENCY` (e.g. medical transport or organ delivery),
+    the system checks if capacity is exceeded.
+  * If the slot is full, the engine preempts the most recently booked `ROUTINE` reservation:
+    - Sets existing reservation status to `PREEMPTED`.
+    - Decrements current booking count and re-allocates slot to the emergency flight.
+    - Creates an automated audit trail entry recording the preemption event.
+- Endpoints:
+  * POST /api/reservations/emergency-preemption - Request emergency flight corridor override.
+- Automated Concurrency Testing:
+  * `concurrency_test.py`: Runs 20 concurrent asynchronous workers competing for 5 slot
+    spots; asserts exactly 5 succeed and 15 receive 409 Conflict without data corruption.
+
+--------------------------------------------------------------------------------
+4.5. SHARED FRONTEND APP SHELL & DESIGN SYSTEM
+--------------------------------------------------------------------------------
+Primary Author: Anmol Saluja (Anmol4679)
+Files:
+  - frontend/src/App.tsx
+  - frontend/src/index.css
+  - frontend/tailwind.config.ts
+  - frontend/src/shared/components/Layout/AppLayout.tsx
+  - frontend/src/shared/components/PlaceholderPage.tsx
+  - frontend/src/shared/components/Forbidden403.tsx
+  - frontend/src/shared/context/AuthContext.tsx
+
+Key Features & Specifications:
+- Dark Mode Slate & Sky Theme with high-contrast tactical data display.
+- Role-aware sidebar displaying navigation targets dynamically:
+  * Fleet Operator: Dashboard, Fleet Management, Airspace Reservations, Telemetry.
+  * Regulator: Operator Oversight, System Audit Log, Airspace Management.
+  * Dispatcher: Airspace Reservations, Live Telemetry.
+- Persistent session storage in `localStorage` with automatic token expiration checks.
+- Granular permission routing via `<RequireRole roles={['...']} />`.
+
+--------------------------------------------------------------------------------
+4.6. DATABASE MIGRATIONS, SEED DATA & INDEXES
+--------------------------------------------------------------------------------
+Database Engine: PostgreSQL (`utm_drone_db`)
+Migrations Path: `backend/migrations/versions/`
+
+Applied Migrations:
+1. `7b968ad5bcf1_baseline_operator_drone_subtypes_audit_.py` (Author: Anmol4679)
+   - Creates `operators`, `drones`, `quadcopter_specs`, `fixed_wing_specs`,
+     `emergency_specs`, and `audit_logs` tables.
+   - Sets up Foreign Key cascades and unique constraints on serial numbers & emails.
+2. `a1b2c3d4e5f6_add_reservation_module.py` (Author: Shravan2307)
+   - Creates `airspace_sectors`, `time_slots`, and `reservations` tables.
+   - Spatial Indexes: GiST index on sector coordinate bounding box.
+   - Temporal Indexes: B+Tree composite index on `(sector_id, start_time, end_time)`.
+
+Pre-seeded Sectors (`backend/seed_reservations.py`):
+- SEC-DT-01: Downtown Corridor (Capacity: 10, Altitude: 50m - 120m)
+- SEC-AP-02: Airport Buffer Zone (Capacity: 2, Altitude: 100m - 150m)
+- SEC-MED-03: Medical District (Capacity: 15, Altitude: 30m - 100m)
+- SEC-LOG-04: Logistics Hub East (Capacity: 25, Altitude: 40m - 120m)
+
+--------------------------------------------------------------------------------
+4.7. AUTOMATED TEST SUITES & CONCURRENCY STRESS TESTING
+--------------------------------------------------------------------------------
+Test Framework: pytest + pytest-asyncio + httpx
+Test Files:
+  - backend/tests/conftest.py (Database engine setup, isolated test DB, JWT tokens)
+  - backend/tests/test_fleet.py (Unit tests for drone creation, subtype validation, status)
+  - backend/tests/test_reservations.py (Unit tests for booking, preemption, slot locking)
+  - backend/tests/concurrency_test.py (Load simulation for high-concurrency race conditions)
+
+================================================================================
+5. COMPLETE DIRECTORY & FILE MANIFEST
+================================================================================
+.
+├── .env.example
+├── .gitignore
+├── README.md
+├── PROGRESS.txt  <-- (This detailed progress document)
+├── backend/
+│   ├── alembic.ini
+│   ├── database.py
+│   ├── main.py
+│   ├── models.py
+│   ├── seed_reservations.py
+│   ├── .env
+│   ├── .env.example
+│   ├── migrations/
+│   │   ├── env.py
+│   │   ├── README
+│   │   ├── script.py.mako
+│   │   └── versions/
+│   │       ├── 7b968ad5bcf1_baseline_operator_drone_subtypes_audit_.py
+│   │       └── a1b2c3d4e5f6_add_reservation_module.py
+│   ├── modules/
+│   │   ├── __init__.py
+│   │   ├── identity/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py
+│   │   │   ├── models.py
+│   │   │   ├── routes.py
+│   │   │   └── schemas.py
+│   │   ├── fleet/
+│   │   │   ├── __init__.py
+│   │   │   ├── models.py
+│   │   │   ├── routes.py
+│   │   │   └── schemas.py
+│   │   └── reservations/
+│   │       ├── __init__.py
+│   │       ├── models.py
+│   │       ├── routes.py
+│   │       └── schemas.py
+│   └── tests/
+│       ├── __init__.py
+│       ├── conftest.py
+│       ├── concurrency_test.py
+│       ├── test_fleet.py
+│       └── test_reservations.py
+└── frontend/
+    ├── index.html
+    ├── package.json
+    ├── package-lock.json
+    ├── postcss.config.js
+    ├── tailwind.config.ts
+    ├── tsconfig.json
+    ├── tsconfig.app.json
+    ├── tsconfig.node.json
+    ├── vite.config.ts
+    ├── .oxlintrc.json
+    ├── public/
+    │   ├── favicon.svg
+    │   └── icons.svg
+    └── src/
+        ├── App.tsx
+        ├── App.css
+        ├── index.css
+        ├── main.tsx
+        ├── assets/
+        ├── fleet/
+        │   ├── index.tsx
+        │   ├── types.ts
+        │   └── components/
+        │       ├── DroneList.tsx
+        │       └── RegisterDroneModal.tsx
+        ├── reservations/
+        │   ├── index.tsx
+        │   ├── types.ts
+        │   └── components/
+        │       ├── AvailabilityCalendar.tsx
+        │       ├── BookingForm.tsx
+        │       ├── EmergencyPreemption.tsx
+        │       ├── MyReservations.tsx
+        │       └── SectorMap.tsx
+        └── shared/
+            ├── index.ts
+            ├── components/
+            │   ├── Forbidden403.tsx
+            │   ├── PlaceholderPage.tsx
+            │   ├── RequireRole.tsx
+            │   └── Layout/
+            │       └── AppLayout.tsx
+            ├── context/
+            │   └── AuthContext.tsx
+            ├── pages/
+            │   └── AuthPage.tsx
+            └── types/
+                └── auth.ts
+
+================================================================================
+6. RUNNING & VERIFICATION INSTRUCTIONS
+================================================================================
+
+1. Start PostgreSQL Database:
+   Ensure PostgreSQL is running locally on port 5432 with database `utm_drone_db`.
+
+2. Run Database Migrations:
+   cd backend
+   .\venv\Scripts\python.exe -m alembic upgrade head
+
+3. Seed Airspace Data:
+   .\venv\Scripts\python.exe seed_reservations.py
+
+4. Start Backend Server:
+   cd backend
+   .\venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000
+   -> API Documentation: http://127.0.0.1:8000/docs
+
+5. Start Frontend Dev Server:
+   cd frontend
+   npm run dev
+   -> Web Application: http://localhost:5173
+
+6. Run Automated Test Suite:
+   cd backend
+   .\venv\Scripts\python.exe -m pytest tests/ -v
+
+================================================================================
+7. FUTURE ROADMAP & PENDING MODULES
+================================================================================
+1. Module 5: Live Telemetry & Radar Map (Assigned to Shlok)
+   - Real-time GPS ingestion via WebSockets / UDP stream.
+   - Altitude deviation alerts and automated geofencing breach triggers.
+2. Module 6: Regulator Airspace Console (Frontend full UI implementation)
+   - Interactive suspension switch for non-compliant operators.
+   - Searchable, exportable audit trail visualization.
+3. Module 7: Deployment & Containerization
+   - Production Dockerfile and docker-compose.yml for backend, frontend, and DB.
+   - CI/CD GitHub Actions workflow for automated testing and linting.
+================================================================================
+END OF PROGRESS REPORT
+================================================================================

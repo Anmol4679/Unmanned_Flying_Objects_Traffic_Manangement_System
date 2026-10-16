@@ -54,7 +54,6 @@ const NAV_ITEMS: NavItem[] = [
     name: "Live Telemetry Map",
     path: "/telemetry",
     icon: Radar,
-    comingSoon: true,
     assignedTo: "Shlok",
     // Visible to all authenticated roles
   },

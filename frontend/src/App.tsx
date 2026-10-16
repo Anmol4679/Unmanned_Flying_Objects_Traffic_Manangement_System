@@ -7,6 +7,8 @@ import { AuthPage } from "./shared/pages/AuthPage";
 import { PlaceholderPage } from "./shared/components/PlaceholderPage";
 import { ReservationsPage } from "./reservations";
 import { FleetPage } from "./fleet";
+import { RegulatorPage } from "./regulator";
+import { TelemetryPage } from "./telemetry";
 
 export const App: React.FC = () => {
   return (
@@ -52,16 +54,7 @@ export const App: React.FC = () => {
               path="/regulator"
               element={
                 <RequireRole roles={["REGULATOR"]}>
-                  <PlaceholderPage
-                    title="Regulator Airspace Console"
-                    description="Civil aviation authority oversight, operator license suspension, and immutable security audit trails."
-                    owner="Regulator Oversight Module"
-                    endpoints={[
-                      "GET /api/operators",
-                      "PATCH /api/operators/:id/suspend",
-                      "GET /api/audit-log",
-                    ]}
-                  />
+                  <RegulatorPage />
                 </RequireRole>
               }
             />
@@ -76,17 +69,12 @@ export const App: React.FC = () => {
               }
             />
 
-            {/* 5. Live Telemetry Map (Shlok's page) */}
+            {/* 5. Live Telemetry Map (Shlok's page - Now Fully Active) */}
             <Route
               path="/telemetry"
               element={
                 <RequireRole>
-                  <PlaceholderPage
-                    title="Live Telemetry & Radar Map"
-                    description="Real-time drone GPS streaming, geofencing violations, and altitude monitoring."
-                    owner="Shlok"
-                    isComingSoon
-                  />
+                  <TelemetryPage />
                 </RequireRole>
               }
             />
@@ -101,4 +89,3 @@ export const App: React.FC = () => {
 };
 
 export default App;
-

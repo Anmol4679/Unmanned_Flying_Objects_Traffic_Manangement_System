@@ -36,7 +36,12 @@ class Operator(Base):
 class AuditLog(Base):
     __tablename__ = "audit_log"
 
-    id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
+    id = Column(
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        index=True,
+        autoincrement=True,
+    )
     actor_id = Column(Integer, nullable=True)
     action = Column(Text, nullable=True)
     entity = Column(Text, nullable=True)

@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import List
 from database import get_db
 from modules.identity.auth import requireRole
-from modules.identity.models import Operator
+from modules.identity.models import Operator, AuditLog
 from modules.fleet.models import Drone
 from modules.reservations.models import AirspaceSector, TimeSlot, Reservation
 from modules.reservations.schemas import (
@@ -139,6 +139,14 @@ def cancel_reservation(
         
     reservation.status = "CANCELLED"
     reservation.slot.is_booked = False
+
+    audit_entry = AuditLog(
+        actor_id=current_operator.operator_id,
+        action="CANCEL_RESERVATION",
+        entity="reservation",
+        entity_id=reservation_id,
+    )
+    db.add(audit_entry)
     db.commit()
     
     return ReservationCancelResponse(
@@ -190,6 +198,13 @@ def emergency_preempt(
         r.slot.is_booked = False
         displaced_ids.append(r.reservation_id)
         
+    audit_entry = AuditLog(
+        actor_id=current_operator.operator_id,
+        action="EMERGENCY_PREEMPT",
+        entity="reservation",
+        entity_id=reservation_id,
+    )
+    db.add(audit_entry)
     db.commit()
     
     return EmergencyPreemptionResponse(

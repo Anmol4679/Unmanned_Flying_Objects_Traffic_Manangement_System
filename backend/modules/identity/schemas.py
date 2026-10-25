@@ -22,6 +22,7 @@ class OperatorOut(BaseModel):
     name: str
     license_no: str
     role: str
+    is_suspended: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Plane, Radar, Plus, Loader2, AlertCircle, Battery, Mountain } from 'lucide-react';
+import { Plane, Radar, Plus, Loader2, AlertCircle, Battery, Mountain, Edit3 } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { FleetDrone, DroneStatus } from '../types';
 import { DRONE_STATUSES, extractApiError } from '../types';
+import { EditDroneModal } from './EditDroneModal';
 
 interface DroneListProps {
   drones: FleetDrone[];
@@ -32,6 +33,7 @@ const subtypeSpec = (d: FleetDrone): string => {
 
 export const DroneList: React.FC<DroneListProps> = ({ drones, token, onDroneUpdated }) => {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [editingDrone, setEditingDrone] = useState<FleetDrone | null>(null);
   const [rowError, setRowError] = useState<{ id: number; message: string } | null>(null);
 
   const changeStatus = async (drone: FleetDrone, next: DroneStatus) => {
@@ -75,18 +77,36 @@ export const DroneList: React.FC<DroneListProps> = ({ drones, token, onDroneUpda
             <div className="col-span-2 text-brand-400/90">{subtypeSpec(d)}</div>
           </div>
 
-          <div className="mt-auto flex items-center gap-2 border-t border-utm-borderLight pt-3">
-            <label htmlFor={`status-${d.drone_id}`} className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Status</label>
-            <select
-              id={`status-${d.drone_id}`}
-              value={d.status}
-              disabled={updatingId === d.drone_id}
-              onChange={(e) => changeStatus(d, e.target.value as DroneStatus)}
-              className="flex-1 rounded-lg border border-utm-border bg-utm-bg px-2 py-1.5 text-xs text-white focus:border-brand-500 focus:outline-none disabled:opacity-50"
+          <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-utm-borderLight pt-3">
+            <div className="flex flex-1 items-center gap-2">
+              <label htmlFor={`status-${d.drone_id}`} className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                Status
+              </label>
+              <select
+                id={`status-${d.drone_id}`}
+                value={d.status}
+                disabled={updatingId === d.drone_id}
+                onChange={(e) => changeStatus(d, e.target.value as DroneStatus)}
+                className="flex-1 rounded-lg border border-utm-border bg-utm-bg px-2 py-1.5 text-xs text-white focus:border-brand-500 focus:outline-none disabled:opacity-50"
+              >
+                {DRONE_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s.replace('_', ' ')}
+                  </option>
+                ))}
+              </select>
+              {updatingId === d.drone_id && <Loader2 className="h-4 w-4 animate-spin text-brand-500" />}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setEditingDrone(d)}
+              className="inline-flex items-center gap-1 rounded-lg border border-utm-border bg-utm-bg px-2.5 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-brand-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              aria-label={`Edit specs for drone #${d.drone_id}`}
             >
-              {DRONE_STATUSES.map((s) => (<option key={s} value={s}>{s.replace('_', ' ')}</option>))}
-            </select>
-            {updatingId === d.drone_id && <Loader2 className="h-4 w-4 animate-spin text-brand-500" />}
+              <Edit3 className="h-3 w-3 text-brand-400" />
+              Edit
+            </button>
           </div>
 
           {rowError?.id === d.drone_id && (
@@ -97,6 +117,18 @@ export const DroneList: React.FC<DroneListProps> = ({ drones, token, onDroneUpda
           )}
         </div>
       ))}
+
+      {editingDrone && (
+        <EditDroneModal
+          drone={editingDrone}
+          token={token}
+          onClose={() => setEditingDrone(null)}
+          onUpdated={(updated) => {
+            onDroneUpdated(updated);
+            setEditingDrone(null);
+          }}
+        />
+      )}
     </div>
   );
 };

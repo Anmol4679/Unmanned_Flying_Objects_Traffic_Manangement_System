@@ -4,7 +4,7 @@ import { AuthProvider } from "./shared/context/AuthContext";
 import { RequireRole } from "./shared/components/RequireRole";
 import { AppLayout } from "./shared/components/Layout/AppLayout";
 import { AuthPage } from "./shared/pages/AuthPage";
-import { PlaceholderPage } from "./shared/components/PlaceholderPage";
+import { DashboardPage } from "./shared/pages/DashboardPage";
 import { ReservationsPage } from "./reservations";
 import { FleetPage } from "./fleet";
 import { RegulatorPage } from "./regulator";
@@ -27,17 +27,7 @@ export const App: React.FC = () => {
             }
           >
             {/* 1. Operator Dashboard */}
-            <Route
-              path="/"
-              element={
-                <PlaceholderPage
-                  title="Operator Dashboard"
-                  description="Overview of current operator identity, operational credentials, and active airspace alerts."
-                  owner="Identity & Profile Module"
-                  endpoints={["GET /api/operators/me"]}
-                />
-              }
-            />
+            <Route path="/" element={<DashboardPage />} />
 
             {/* 2. Fleet Management (Fleet Operator only) */}
             <Route

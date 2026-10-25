@@ -41,11 +41,6 @@ export const AuthPage: React.FC = () => {
   const from = (location.state as { from?: { pathname?: string } })?.from
     ?.pathname || "/";
 
-  // If already authenticated, redirect to target page immediately
-  if (isAuthenticated && user) {
-    return <Navigate to={from} replace />;
-  }
-
   // Login form state
   const [loginLicense, setLoginLicense] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -60,6 +55,11 @@ export const AuthPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // If already authenticated, redirect to target page immediately
+  if (isAuthenticated && user) {
+    return <Navigate to={from} replace />;
+  }
 
   const performLogin = async (licenseNo: string, passwordStr: string) => {
     setError(null);

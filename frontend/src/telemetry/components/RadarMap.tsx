@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import type { TelemetryPoint, SectorBoundary } from "../types";
-import { Compass, Navigation, Radio } from "lucide-react";
+import { Compass, Radio } from "lucide-react";
 
 interface RadarMapProps {
   telemetries: Map<string, TelemetryPoint>;

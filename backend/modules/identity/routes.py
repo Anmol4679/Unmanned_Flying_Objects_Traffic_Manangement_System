@@ -5,11 +5,14 @@ from sqlalchemy.orm import Session
 from database import get_db
 from modules.identity.auth import (
     create_access_token,
+    get_login_rate_limit,
     hash_password,
+    is_operator_suspended,
     limiter,
     requireRole,
     verify_password,
 )
+from modules.identity.audit import write_audit
 from modules.identity.models import AuditLog, Operator
 from modules.identity.schemas import (
     AuditLogOut,
@@ -62,7 +65,29 @@ def register(payload: OperatorCreate, db: Session = Depends(get_db)):
         db.add(operator)
         db.commit()
         db.refresh(operator)
-        return operator
+
+        # Broadcast audit event for operator registration
+        try:
+            write_audit(
+                db=db,
+                actor_id=operator.operator_id,
+                action="REGISTER",
+                entity="operator",
+                entity_id=operator.operator_id,
+            )
+        except Exception:
+            pass
+
+        return OperatorOut(
+            operator_id=operator.operator_id,
+            name=operator.name,
+            license_no=operator.license_no,
+            role=operator.role,
+            is_suspended=False,
+        )
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as exc:
         db.rollback()
         raise HTTPException(
@@ -76,7 +101,7 @@ def register(payload: OperatorCreate, db: Session = Depends(get_db)):
     response_model=TokenResponse,
     summary="Operator login with rate limiting",
 )
-@limiter.limit("30/minute")
+@limiter.limit(get_login_rate_limit)
 def login(request: Request, payload: OperatorLogin, db: Session = Depends(get_db)):
     operator = (
         db.query(Operator).filter(Operator.license_no == payload.license_no).first()
@@ -87,6 +112,13 @@ def login(request: Request, payload: OperatorLogin, db: Session = Depends(get_db
             detail="Invalid license number or password",
         )
 
+    # Reject suspended operators at login
+    if is_operator_suspended(db, operator.operator_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Operator account is suspended. Access denied. Please contact the Civil Aviation Authority.",
+        )
+
     access_token = create_access_token(
         operator_id=operator.operator_id,
         role=operator.role,
@@ -94,7 +126,13 @@ def login(request: Request, payload: OperatorLogin, db: Session = Depends(get_db
     return TokenResponse(
         access_token=access_token,
         token_type="bearer",
-        operator=OperatorOut.model_validate(operator),
+        operator=OperatorOut(
+            operator_id=operator.operator_id,
+            name=operator.name,
+            license_no=operator.license_no,
+            role=operator.role,
+            is_suspended=False,
+        ),
     )
 
 
@@ -108,8 +146,16 @@ def login(request: Request, payload: OperatorLogin, db: Session = Depends(get_db
 )
 def get_current_operator_profile(
     current_operator: Operator = Depends(requireRole()),
+    db: Session = Depends(get_db),
 ):
-    return current_operator
+    suspended = is_operator_suspended(db, current_operator.operator_id)
+    return OperatorOut(
+        operator_id=current_operator.operator_id,
+        name=current_operator.name,
+        license_no=current_operator.license_no,
+        role=current_operator.role,
+        is_suspended=suspended,
+    )
 
 
 @operators_router.get(
@@ -126,12 +172,25 @@ def list_operators(
     current_regulator: Operator = Depends(requireRole("REGULATOR")),
     db: Session = Depends(get_db),
 ):
-    return db.query(Operator).order_by(Operator.operator_id.asc()).all()
+    operators = db.query(Operator).order_by(Operator.operator_id.asc()).all()
+    results: List[OperatorOut] = []
+    for op in operators:
+        suspended = is_operator_suspended(db, op.operator_id)
+        results.append(
+            OperatorOut(
+                operator_id=op.operator_id,
+                name=op.name,
+                license_no=op.license_no,
+                role=op.role,
+                is_suspended=suspended,
+            )
+        )
+    return results
 
 
 @operators_router.patch(
     "/{id}/suspend",
-    summary="Suspend an operator (Regulator only)",
+    summary="Suspend or reinstate an operator (Regulator only)",
 )
 def suspend_operator(
     id: int,
@@ -145,20 +204,29 @@ def suspend_operator(
             detail=f"Operator with ID {id} not found.",
         )
 
-    # Write entry to audit_log
-    audit_entry = AuditLog(
+    if target_operator.role == "REGULATOR":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Regulator accounts cannot be suspended.",
+        )
+
+    currently_suspended = is_operator_suspended(db, target_operator.operator_id)
+    new_action = "REINSTATE" if currently_suspended else "SUSPEND"
+
+    # Persist and broadcast audit event atomically
+    audit_entry = write_audit(
+        db=db,
         actor_id=current_regulator.operator_id,
-        action="SUSPEND",
+        action=new_action,
         entity="operator",
         entity_id=target_operator.operator_id,
     )
-    db.add(audit_entry)
-    db.commit()
-    db.refresh(audit_entry)
 
+    action_word = "reinstated" if new_action == "REINSTATE" else "suspended"
     return {
-        "message": f"Operator '{target_operator.name}' (ID: {id}) suspended successfully.",
+        "message": f"Operator '{target_operator.name}' (ID: {id}) {action_word} successfully.",
         "operator_id": target_operator.operator_id,
+        "is_suspended": not currently_suspended,
         "audit_log_id": audit_entry.id,
     }
 

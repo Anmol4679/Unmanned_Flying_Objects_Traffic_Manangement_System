@@ -1,0 +1,86 @@
+erDiagram
+    %% Live Database Schema from utm_drone_db
+    %% Generated via backend/scripts/dump_schema.py
+    %% NOTE: Pending teammate tables (e.g., waypoint_telemetry) are omitted until instantiated.
+
+    OPERATOR {
+        int operator_id PK
+        string name
+        string license_no UK
+        string role
+        string password_hash
+    }
+
+    DRONE {
+        int drone_id PK
+        int operator_id FK
+        string drone_type
+        float max_altitude_m
+        float battery_capacity_pct
+        string status
+    }
+
+    DRONE_FIXED_WING {
+        int drone_id PK,FK
+        float wingspan_m
+    }
+
+    DRONE_QUADCOPTER {
+        int drone_id PK,FK
+        int rotor_count
+    }
+
+    DRONE_EMERGENCY_MEDICAL {
+        int drone_id PK,FK
+        int priority_clearance_level
+    }
+
+    AUDIT_LOG {
+        int id PK
+        int actor_id
+        string action
+        string entity
+        int entity_id
+        timestamp created_at
+    }
+
+    AIRSPACE_SECTOR {
+        int sector_id PK
+        string sector_name UK
+        float min_lat
+        float max_lat
+        float min_lon
+        float max_lon
+        float floor_altitude_m
+        float ceiling_altitude_m
+    }
+
+    TIME_SLOT {
+        int slot_id PK
+        int sector_id FK
+        timestamp start_time UK
+        timestamp end_time UK
+        boolean is_booked
+    }
+
+    RESERVATION {
+        int reservation_id PK
+        int slot_id FK
+        int drone_id FK
+        int operator_id FK
+        string priority
+        string status
+        timestamp created_at
+    }
+
+    AIRSPACE_SECTOR ||--o{ TIME_SLOT : "has (RESTRICT)"
+    DRONE ||--o{ RESERVATION : "has (RESTRICT)"
+    DRONE ||--o| DRONE_EMERGENCY_MEDICAL : "specializes (CASCADE)"
+    DRONE ||--o| DRONE_FIXED_WING : "specializes (CASCADE)"
+    DRONE ||--o| DRONE_QUADCOPTER : "specializes (CASCADE)"
+    OPERATOR ||--o{ DRONE : "has (CASCADE)"
+    OPERATOR ||--o{ RESERVATION : "has (RESTRICT)"
+    TIME_SLOT ||--o| RESERVATION : "books (RESTRICT)"
+
+    %% PENDING TEAMMATE TABLES (Not yet created in PostgreSQL):
+    %% - waypoint_telemetry (Teammate Shlok - Telemetry / Redis+InfluxDB / Timeseries)

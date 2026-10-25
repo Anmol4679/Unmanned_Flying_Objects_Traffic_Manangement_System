@@ -46,6 +46,24 @@ class DroneStatusUpdate(BaseModel):
     )
 
 
+class DroneUpdate(BaseModel):
+    max_altitude_m: Optional[Decimal] = Field(
+        default=None, ge=0, le=500, description="Max altitude in meters (0-500)"
+    )
+    battery_capacity_pct: Optional[Decimal] = Field(
+        default=None, ge=0, le=100, description="Battery capacity percentage (0-100)"
+    )
+    wingspan_m: Optional[Decimal] = Field(
+        default=None, gt=0, description="Wingspan in meters (for FIXED_WING)"
+    )
+    rotor_count: Optional[int] = Field(
+        default=None, gt=0, description="Number of rotors (for QUADCOPTER)"
+    )
+    priority_clearance_level: Optional[int] = Field(
+        default=None, gt=0, description="Priority clearance level (for EMERGENCY_MEDICAL)"
+    )
+
+
 class DroneOut(BaseModel):
     drone_id: int
     operator_id: int

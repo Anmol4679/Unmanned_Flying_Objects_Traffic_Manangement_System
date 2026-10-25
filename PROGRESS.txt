@@ -2,9 +2,10 @@
 UNMANNED FLYING OBJECTS TRAFFIC MANAGEMENT SYSTEM (UTM)
 PROJECT IMPLEMENTATION PROGRESS REPORT & ARCHITECTURAL SPECIFICATION
 ================================================================================
-Generated On: 2026-10-12
+Generated On: 2026-10-23
 Repository: https://github.com/Anmol4679/Unmanned_Flying_Objects_Traffic_Manangement_System
 Branch: main
+Latest Commit: 2a8e896 (Merge pull request #5 from Shravan2307/feature/utm-continuation)
 
 --------------------------------------------------------------------------------
 TABLE OF CONTENTS
@@ -17,38 +18,48 @@ TABLE OF CONTENTS
    4.2. Module 2: Fleet Management & Polymorphic Drone Subtypes
    4.3. Module 3: Airspace Sector & Time-Slot Reservation Engine
    4.4. Module 4: High-Concurrency Lock Engine & Emergency Preemption
-   4.5. Module 5: Real-Time Telemetry & WebSocket Streaming Engine
-   4.6. Shared Frontend App Shell, Design System & Navigation
-   4.7. Database Migrations, Seed Data & Spatial/Temporal Indexes
-   4.8. Automated Test Suites & Concurrency Stress Testing
+   4.5. Module 5 (Backend): Real-Time Telemetry & WebSocket Streaming Engine
+   4.6. Module 5 (Frontend): Live Telemetry Radar Map & Tactical HUD Dashboard
+   4.7. Module 6: Regulator Airspace Console & Security Audit Trail
+   4.8. Module 7: Production Containerization, Docker Compose & CI/CD Pipeline
+   4.9. Shared Frontend App Shell, Design System & Navigation
+   4.10. Database Migrations, Seed Data & Spatial/Temporal Indexes
+   4.11. Automated Test Suites, Concurrency Stress Testing & WebSocket Verification
 5. Complete Directory & File Manifest
 6. Running & Verification Instructions
 7. Future Roadmap & Pending Modules
 
-================================================================================
+===============================================================================
 1. EXECUTIVE SUMMARY & ARCHITECTURE OVERVIEW
-================================================================================
+===============================================================================
 The Unmanned Flying Objects Traffic Management System (UTM) is an enterprise-grade
 distributed platform designed for civil aviation authorities, fleet operators,
 and dispatchers to manage low-altitude airspace safely and deterministically.
 
 Key Architectural Characteristics:
 - Backend: FastAPI (Python 3.11+ / ASGI), SQLAlchemy 2.0 ORM, psycopg3,
-  SlowAPI rate limiting, python-jose (JWT), passlib with bcrypt hashing.
+  SlowAPI rate limiting, python-jose (JWT), passlib with bcrypt hashing,
+  resilient 2-second fallback to SQLite (`utm_drone.db`) if PostgreSQL is offline.
 - Caching & Real-Time Ingestion: Redis 7 (in-memory key-value hash cache) for
-  ultra-low latency drone telemetry storage.
-- Real-Time Messaging: Full-duplex WebSockets for instantaneous telemetry
-  broadcasting to flight radar clients.
-- Database: PostgreSQL with raw SQL spatial extensions, GiST bounding box
-  indexes, B+Tree temporal indexing, and Alembic database migrations.
+  ultra-low latency drone telemetry storage and retrieval.
+- Real-Time Messaging: Full-duplex WebSockets (`/ws/telemetry`) with client pool
+  connection management for instantaneous telemetry broadcasting to flight radar clients.
+- Database: PostgreSQL (`utm_drone_db`) with raw SQL spatial extensions, GiST bounding
+  box indexes, B+Tree temporal indexing, and Alembic database migrations.
 - Frontend: React 19 + TypeScript + Vite, Tailwind CSS, Lucide React icons,
   React Router DOM v7, Custom Auth & RBAC Route Guard System.
 - Concurrency Engine: Pessimistic locking (`SELECT ... FOR UPDATE`) preventing
-  airspace sector overbooking, accompanied by an emergency preemption pipeline.
+  airspace sector overbooking, accompanied by an automated emergency preemption pipeline.
+- Production Containerization: Multi-stage Dockerfiles for backend and frontend,
+  Nginx reverse proxy with WebSocket upgrade support, and full multi-container
+  orchestration via `docker-compose.yml`.
+- CI/CD Automation: GitHub Actions workflow (`.github/workflows/ci.yml`) validating
+  test suites and code quality on every push and pull request.
+- Test Coverage: 27 / 27 unit, integration, concurrency, and WebSocket tests passing.
 
-================================================================================
+===============================================================================
 2. TEAM CONTRIBUTORS & ATTRIBUTION MATRIX
-================================================================================
+===============================================================================
 
 --------------------------------------------------------------------------------
 CONTRIBUTOR 1: Anmol Saluja (Anmol4679) <anmolslj@gmail.com>
@@ -159,7 +170,48 @@ Core Responsibilities & Implemented Features:
 3. CHRONOLOGICAL GIT COMMIT HISTORY
 ================================================================================
 
-Commit: 5da94b5 (HEAD -> main, origin/main)
+Commit: 2a8e896 (HEAD -> main, origin/main)
+Author: Anmol Saluja <anmolslj@gmail.com>
+Date:   Tue Oct 20 13:08:31 2026 +0530
+Subject: Merge pull request #5 from Shravan2307/feature/utm-continuation
+Summary: feat(Shravan2307): Live Telemetry Radar, Regulator Console, Reservation Hardening & Full Containerization.
+
+Commit: 727cf01
+Author: Shravan2307 <sp236903@gmail.com>
+Date:   Fri Oct 16 18:53:04 2026 +0000
+Subject: feat: complete telemetry, regulator console, containerization, docs updates
+Summary:
+- Built frontend Live Telemetry Radar Map, Telemetry HUD, and Alerts Banner.
+- Built Regulator Airspace Console with Operator Table, Suspension modal, and Audit Trail CSV export.
+- Hardened Airspace Reservations with automated security audit logging.
+- Created production Dockerfiles for backend and frontend, and multi-service docker-compose.yml.
+- Added Nginx reverse proxy routing REST and WebSocket upgrades.
+- Added GitHub Actions CI workflow (.github/workflows/ci.yml).
+- Expanded test suite to 27 tests passing.
+
+Commit: 47cf8ec
+Author: Shravan2307 <sp236903@gmail.com>
+Date:   Fri Oct 16 18:04:17 2026 +0000
+Subject: test(telemetry): add test_telemetry_websocket and guard standalone run with __main__
+Summary: Enhanced test_websocket.py to support automated pytest discovery alongside standalone execution.
+
+Commit: c8f02ad
+Author: Shravan2307 <sp236903@gmail.com>
+Date:   Fri Oct 16 18:00:32 2026 +0000
+Subject: Merge branch 'feature/airspace-reservation-module' into feature/utm-continuation
+Summary:
+- Integrated telemetry routers (PR #4 by Shlok Vyas) with lifespan database seeding.
+- Preserved direct bcrypt password hashing and auth resilience fixes.
+- Preserved 1-click demo logins and enhanced registration feedback.
+- Preserved Fleet module route mounting.
+
+Commit: aac2887
+Author: Anmol4679 <anmolslj@gmail.com>
+Date:   Mon Oct 12 23:08:59 2026 +0530
+Subject: docs(progress): update PROGRESS.txt with real-time telemetry module and commit history
+Summary: Updated documentation with telemetry ingestion and streaming architecture.
+
+Commit: 5da94b5
 Author: Anmol Saluja <anmolslj@gmail.com>
 Date:   Mon Oct 12 20:28:41 2026 +0530
 Subject: Merge pull request #4 from shlokvyas45/feature/telemetry
@@ -175,6 +227,32 @@ Summary:
 - Implemented `/ws/telemetry` WebSocket endpoint with non-blocking broadcast pipeline.
 - Added `test_websocket.py` automated connection test script.
 - Wired telemetry and WebSocket routers into main FastAPI application.
+
+Commit: d236f74
+Author: Shravan2307 <sp236903@gmail.com>
+Date:   Sun Oct 4 16:44:24 2026 +0000
+Subject: fix(auth): enhance registration error messaging and handle Pydantic validation arrays
+Summary: Improved UI error displays for registration failures and handled backend validation arrays.
+
+Commit: 57e86ff
+Author: Shravan2307 <sp236903@gmail.com>
+Date:   Sun Oct 4 16:37:31 2026 +0000
+Subject: fix(auth): replace passlib with direct bcrypt and add 2s PostgreSQL connection fallback to SQLite
+Summary:
+- Replaced passlib with direct bcrypt (72-byte safe truncation) in auth.py to fix Python 3.14 passlib compatibility bug.
+- Added 2-second timeout and automatic SQLite (utm_drone.db) fallback in database.py when local PostgreSQL is unreachable.
+- Added continuous password hash sync for demo accounts on backend startup.
+
+Commit: 10961da
+Author: Shravan2307 <sp236903@gmail.com>
+Date:   Sun Oct 4 15:47:27 2026 +0000
+Subject: fix(auth): resolve infinite loading loops, auto-redirect logged in operators, and add 1-click demo logins
+Summary:
+- Added automatic database seeding in FastAPI lifespan hook for demo accounts (LIC-FLEET-001, LIC-REG-001, LIC-DISP-001).
+- Auto-redirected already authenticated operators from /login to main application shell.
+- Added 1-Click Demo Login preset buttons for quick login across all 3 roles.
+- Fixed AuthContext loading state initialization and profile fetching logic.
+- Mounted FleetPage component on /fleet route.
 
 Commit: d74570a
 Author: Anmol4679 <anmolslj@gmail.com>
@@ -282,6 +360,7 @@ Summary: Initial repository creation.
 4.1. MODULE 1: IDENTITY, AUTHENTICATION & RBAC
 --------------------------------------------------------------------------------
 Primary Author: Anmol Saluja (Anmol4679)
+Additional Hardening: Shravan2307 (Direct bcrypt, demo accounts, auth resilience)
 Backend Files:
   - backend/modules/identity/models.py
   - backend/modules/identity/schemas.py
@@ -296,14 +375,22 @@ Frontend Files:
 
 Key Features & Specifications:
 - Data Models:
-  * `Operator`: id, username, email, hashed_password, full_name, organization,
-    role (REGULATOR, FLEET_OPERATOR, DISPATCHER), is_active, is_suspended, created_at.
-  * `AuditLog`: id, operator_id, action, target_type, target_id, details, ip_address, timestamp.
+  * `operator` (`Operator` model): `operator_id` (PK, INTEGER), `name` (VARCHAR(100)),
+    `license_no` (VARCHAR(30), UNIQUE), `role` (VARCHAR(20), CHECK: 'FLEET_OPERATOR',
+    'REGULATOR', 'DISPATCHER'), `password_hash` (TEXT).
+  * `audit_log` (`AuditLog` model): `id` (PK, BIGINT), `actor_id` (INTEGER, nullable, no FK
+    to ensure audit retention), `action` (TEXT), `entity` (TEXT), `entity_id` (INTEGER, nullable),
+    `created_at` (TIMESTAMP).
 - Security Architecture:
-  * Password Hashing: bcrypt with passlib CryptContext.
-  * Token Format: JWT (HMAC-SHA256) containing `sub` (username), `role`, `id`, and expiry.
-  * Rate Limiting: SlowAPI memory limiter enforcing 5 requests per minute on `/api/auth/login`.
+  * Password Hashing: Direct bcrypt hashing with 72-byte safe truncation (mitigating
+    Python 3.14 passlib compatibility deprecations).
+  * Token Format: JWT (HMAC-SHA256) containing `id` (int), `operator_id` (int), `role` (str),
+    `sub` (str, license_no), and `exp` (timestamp expiry).
+  * Rate Limiting: SlowAPI memory limiter on `/api/auth/login` configurable via
+    `LOGIN_RATE_LIMIT` environment variable (defaults to "5/minute").
   * RBAC Enforcers: `require_role(["REGULATOR", ...])` FastAPI dependency.
+  * Demo Seeding: Automatic on-startup seeding of demo accounts (LIC-FLEET-001,
+    LIC-REG-001, LIC-DISP-001) with 1-click login buttons in the frontend UI.
 - Endpoints:
   * POST /api/auth/register - Register a new operator (default role FLEET_OPERATOR).
   * POST /api/auth/login - Authenticate credentials and issue JWT access token.
@@ -329,20 +416,26 @@ Frontend Files:
 
 Key Features & Specifications:
 - Data Models & Inheritance:
-  * `Drone` (Base Table): id, serial_number, model_name, manufacturer, operator_id,
-    status (ACTIVE, GROUNDED, IN_FLIGHT, MAINTENANCE), subtype_discriminator (QUADCOPTER,
-    FIXED_WING, EMERGENCY_MEDICAL), max_payload_kg, max_range_km, max_altitude_m, created_at.
-  * `QuadcopterSpec` (Subtype): drone_id, rotor_count, hover_efficiency_rating, obstacle_avoidance_type.
-  * `FixedWingSpec` (Subtype): drone_id, wingspan_m, glide_ratio, runway_required_m.
-  * `EmergencyMedicalSpec` (Subtype): drone_id, temperature_controlled_bay, defibrillator_equipped, priority_tier.
+  * `drone` (Base Table, `Drone` model): `drone_id` (PK, INTEGER), `operator_id` (INTEGER,
+    FK -> `operator.operator_id` ON DELETE CASCADE), `drone_type` (VARCHAR(30), discriminator
+    CHECK IN ('FIXED_WING', 'QUADCOPTER', 'EMERGENCY_MEDICAL')), `max_altitude_m` (NUMERIC(6,2),
+    CHECK >= 0 AND <= 500), `battery_capacity_pct` (NUMERIC(5,2), CHECK >= 0 AND <= 100),
+    `status` (VARCHAR(20), CHECK IN ('IDLE', 'IN_FLIGHT', 'MAINTENANCE')).
+  * `drone_quadcopter` (Subtype Table, `DroneQuadcopter` model): `drone_id` (PK, FK ->
+    `drone.drone_id` ON DELETE CASCADE), `rotor_count` (INTEGER).
+  * `drone_fixed_wing` (Subtype Table, `DroneFixedWing` model): `drone_id` (PK, FK ->
+    `drone.drone_id` ON DELETE CASCADE), `wingspan_m` (NUMERIC(5,2)).
+  * `drone_emergency_medical` (Subtype Table, `DroneEmergencyMedical` model): `drone_id` (PK,
+    FK -> `drone.drone_id` ON DELETE CASCADE), `priority_clearance_level` (INTEGER).
 - Business Logic:
-  * Atomic creation: Drone base record and corresponding subtype record created within
-    a single ACID transaction; rolls back completely on any validation error.
+  * Atomic creation & editing: Drone base record and corresponding subtype record created/updated
+    within a single ACID transaction; rolls back completely on any validation error.
   * Ownership filtering: Operators only view and control their own fleet; Regulators can view all.
 - Endpoints:
   * POST /api/drones - Register a new drone with polymorphic subtype specifications.
   * GET  /api/drones - List registered drones for the calling operator.
   * GET  /api/drones/{id} - Get detailed specifications of a specific UAV.
+  * PATCH /api/drones/{id} - Update drone base specs and subtype-specific fields atomically.
   * PATCH /api/drones/{id}/status - Update drone operational status.
 - Frontend Features:
   * Modern grid/card view of fleet with real-time status badges.
@@ -367,12 +460,17 @@ Frontend Files:
 
 Key Features & Specifications:
 - Data Models:
-  * `AirspaceSector`: id, name, code, min_altitude_m, max_altitude_m, max_concurrent_drones,
-    min_lat, max_lat, min_lon, max_lon, is_active, created_at.
-  * `TimeSlot`: id, sector_id, start_time, end_time, capacity, current_bookings, is_locked.
-  * `Reservation`: id, operator_id, drone_id, sector_id, time_slot_id, status (PENDING,
-    APPROVED, REJECTED, CANCELLED, PREEMPTED), priority (ROUTINE, PRIORITY, EMERGENCY),
-    purpose, approved_at, cancelled_at, created_at.
+  * `airspace_sector` (`AirspaceSector` model): `sector_id` (PK, INTEGER), `sector_name` (VARCHAR(50), UNIQUE),
+    `min_lat` (NUMERIC(9,6)), `max_lat` (NUMERIC(9,6)), `min_lon` (NUMERIC(9,6)), `max_lon` (NUMERIC(9,6)),
+    `floor_altitude_m` (NUMERIC(6,2)), `ceiling_altitude_m` (NUMERIC(6,2)).
+  * `time_slot` (`TimeSlot` model): `slot_id` (PK, INTEGER), `sector_id` (INTEGER, FK ->
+    `airspace_sector.sector_id` ON DELETE RESTRICT), `start_time` (TIMESTAMP), `end_time` (TIMESTAMP),
+    `is_booked` (BOOLEAN). Unique on `(sector_id, start_time, end_time)`.
+  * `reservation` (`Reservation` model): `reservation_id` (PK, INTEGER), `slot_id` (INTEGER, FK ->
+    `time_slot.slot_id` ON DELETE RESTRICT, UNIQUE), `drone_id` (INTEGER, FK -> `drone.drone_id` ON DELETE RESTRICT),
+    `operator_id` (INTEGER, FK -> `operator.operator_id` ON DELETE RESTRICT), `priority` (VARCHAR(10),
+    CHECK IN ('STANDARD', 'CRITICAL')), `status` (VARCHAR(20), CHECK IN ('CONFIRMED', 'CANCELLED',
+    'COMPLETED', 'DISPLACED')), `created_at` (TIMESTAMP).
 - Endpoints:
   * GET  /api/reservations/sectors - Retrieve all active airspace sectors and spatial bounds.
   * POST /api/reservations/sectors - Create a new airspace sector (Regulator only).
@@ -415,7 +513,7 @@ Key Features & Specifications:
     spots; asserts exactly 5 succeed and 15 receive 409 Conflict without data corruption.
 
 --------------------------------------------------------------------------------
-4.5. MODULE 5: REAL-TIME TELEMETRY & WEBSOCKET STREAMING ENGINE
+4.5. MODULE 5 (BACKEND): REAL-TIME TELEMETRY & WEBSOCKET STREAMING ENGINE
 --------------------------------------------------------------------------------
 Primary Author: Shlok Vyas (shlokvyas45)
 Backend Files:
@@ -446,11 +544,102 @@ Key Features & Specifications:
   * Maintains an in-memory connection set `active_connections` with automated pruning
     of disconnected or stalled sockets during broadcast cycles.
 - Automated Testing & Scripting:
-  * `backend/tests/test_websocket.py`: Asynchronous testing client connecting to `/ws/telemetry`
-    and verifying message ingestion and broadcast reception.
+  * `backend/tests/test_websocket.py`: Automated pytest test case (`test_telemetry_websocket`)
+    and standalone script connecting to `/ws/telemetry` to verify ingestion and broadcast.
 
 --------------------------------------------------------------------------------
-4.6. SHARED FRONTEND APP SHELL & DESIGN SYSTEM
+4.6. MODULE 5 (FRONTEND): LIVE TELEMETRY RADAR MAP & TACTICAL HUD DASHBOARD
+--------------------------------------------------------------------------------
+Primary Author: Shravan2307
+Frontend Files:
+  - frontend/src/telemetry/index.tsx
+  - frontend/src/telemetry/components/RadarMap.tsx
+  - frontend/src/telemetry/components/TelemetryHUD.tsx
+  - frontend/src/telemetry/components/AlertsBanner.tsx
+  - frontend/src/telemetry/types.ts
+
+Key Features & Specifications:
+- Dark Aerospace SVG Radar Visualizer (`RadarMap.tsx`):
+  * Dynamic range rings (1km, 2km, 3km, 4km), crosshairs, azimuth degree ticks, and cardinal markers.
+  * Real-time drone rendering with orientation angle vectors matching heading telemetry.
+  * Glowing breadcrumb history trails tracing drone flight paths over time.
+  * Airspace sector polygon boundaries and geofenced zones rendered in real time.
+- Tactical Telemetry HUD (`TelemetryHUD.tsx`):
+  * Digital altitude meter with target ceiling benchmarks.
+  * Dual speedometer displaying velocities in both meters/second (m/s) and km/h.
+  * Battery gauge with color-coded critical status warnings.
+  * Rotating 360° compass heading rose.
+  * Drone selector for instant switching between active aircraft.
+- Safety Alert System (`AlertsBanner.tsx`):
+  * Real-time visual banners for altitude ceiling breaches (>120m).
+  * Geofence boundary violation warnings.
+  * Low battery alerts triggered at <20% reserve.
+- Offline Flight Simulator:
+  * Integrated multi-drone flight trajectory simulator enabling interactive demos
+    and offline operator testing without requiring live hardware.
+
+--------------------------------------------------------------------------------
+4.7. MODULE 6: REGULATOR AIRSPACE CONSOLE & SECURITY AUDIT TRAIL
+--------------------------------------------------------------------------------
+Primary Author: Shravan2307
+Backend Files:
+  - backend/modules/identity/routes.py
+  - backend/modules/identity/models.py
+  - backend/modules/reservations/routes.py
+Frontend Files:
+  - frontend/src/regulator/index.tsx
+  - frontend/src/regulator/components/OperatorTable.tsx
+  - frontend/src/regulator/components/AuditTrailTable.tsx
+  - frontend/src/regulator/types.ts
+
+Key Features & Specifications:
+- System Overview & Airspace KPIs:
+  * Real-time metrics tracking Active Operators, Registered Fleet, Airspace Compliance
+    Rate, and Recorded Security Incidents.
+- Operator Governance & License Management (`OperatorTable.tsx`):
+  * Complete listing of registered operators across all organizations.
+  * Instant suspension and reinstatement action triggers with safety confirmation modals.
+  * Self-suspension guards preventing regulators from accidentally locking out their own accounts.
+- Regulatory Compliance Audit Trail (`AuditTrailTable.tsx`):
+  * Real-time audit trail capturing operator logins, registrations, drone creations,
+    reservation cancellations, and regulator emergency preemption actions.
+  * Dynamic search filter and category filtering (Action, Target Type).
+  * 1-Click CSV Export for official compliance documentation and external review.
+
+--------------------------------------------------------------------------------
+4.8. MODULE 7: PRODUCTION CONTAINERIZATION, DOCKER COMPOSE & CI/CD PIPELINE
+--------------------------------------------------------------------------------
+Primary Author: Shravan2307
+Configuration Files:
+  - docker-compose.yml
+  - backend/Dockerfile
+  - backend/requirements.txt
+  - frontend/Dockerfile
+  - frontend/nginx.conf
+  - .github/workflows/ci.yml
+
+Key Features & Specifications:
+- Multi-Stage Dockerfile for Frontend:
+  * Stage 1: Node 20-alpine builder compiles Vite + React 19 production bundle.
+  * Stage 2: Nginx alpine image serves static assets on port 80.
+- Production Nginx Reverse Proxy (`frontend/nginx.conf`):
+  * Routes `/api/` traffic directly to the FastAPI backend on port 8000.
+  * Routes `/ws/` traffic to the FastAPI WebSocket server with `Upgrade` and `Connection` headers.
+  * Supports client-side SPA routing via `try_files $uri $uri/ /index.html`.
+- Backend Dockerfile (`backend/Dockerfile`):
+  * Python 3.12-slim base image, non-root user setup, lightweight dependency install.
+  * Runs Uvicorn production server on port 8000.
+- Orchestration (`docker-compose.yml`):
+  * Manages 4 interconnected services: `db` (PostgreSQL 15), `redis` (Redis 7),
+    `backend` (FastAPI), and `frontend` (Nginx + React).
+  * Configures health checks, isolated internal bridge network, and persistent storage volumes.
+- Continuous Integration Pipeline (`.github/workflows/ci.yml`):
+  * Runs on every push and pull request to `main`.
+  * Automatically sets up Python 3.12, installs dependencies, and runs `pytest tests/ -v`.
+  * Automatically sets up Node 20, installs npm dependencies, and runs build verification.
+
+--------------------------------------------------------------------------------
+4.9. SHARED FRONTEND APP SHELL & DESIGN SYSTEM
 --------------------------------------------------------------------------------
 Primary Author: Anmol Saluja (Anmol4679)
 Files:
@@ -472,18 +661,19 @@ Key Features & Specifications:
 - Granular permission routing via `<RequireRole roles={['...']} />`.
 
 --------------------------------------------------------------------------------
-4.7. DATABASE MIGRATIONS, SEED DATA & INDEXES
+4.10. DATABASE MIGRATIONS, SEED DATA & SPATIAL/TEMPORAL INDEXES
 --------------------------------------------------------------------------------
-Database Engine: PostgreSQL (`utm_drone_db`)
+Database Engine: PostgreSQL (`utm_drone_db`) with fallback SQLite (`utm_drone.db`)
 Migrations Path: `backend/migrations/versions/`
 
 Applied Migrations:
 1. `7b968ad5bcf1_baseline_operator_drone_subtypes_audit_.py` (Author: Anmol4679)
-   - Creates `operators`, `drones`, `quadcopter_specs`, `fixed_wing_specs`,
-     `emergency_specs`, and `audit_logs` tables.
-   - Sets up Foreign Key cascades and unique constraints on serial numbers & emails.
+   - Creates `operator`, `drone`, `drone_fixed_wing`, `drone_quadcopter`,
+     `drone_emergency_medical`, and `audit_log` tables.
+   - Sets up Foreign Key cascades (`ON DELETE CASCADE` from `drone` to `operator`, and from subtype tables to `drone`)
+     and unique constraint on `operator.license_no`.
 2. `a1b2c3d4e5f6_add_reservation_module.py` (Author: Shravan2307)
-   - Creates `airspace_sectors`, `time_slots`, and `reservations` tables.
+   - Creates `airspace_sector`, `time_slot`, and `reservation` tables.
    - Spatial Indexes: GiST index on sector coordinate bounding box.
    - Temporal Indexes: B+Tree composite index on `(sector_id, start_time, end_time)`.
 
@@ -494,29 +684,52 @@ Pre-seeded Sectors (`backend/seed_reservations.py`):
 - SEC-LOG-04: Logistics Hub East (Capacity: 25, Altitude: 40m - 120m)
 
 --------------------------------------------------------------------------------
-4.8. AUTOMATED TEST SUITES & CONCURRENCY STRESS TESTING
+4.11. AUTOMATED TEST SUITES, CONCURRENCY STRESS TESTING & WEBSOCKET VERIFICATION
 --------------------------------------------------------------------------------
 Test Framework: pytest + pytest-asyncio + httpx + websockets
-Test Files:
-  - backend/tests/conftest.py (Database engine setup, isolated test DB, JWT tokens)
-  - backend/tests/test_fleet.py (Unit tests for drone creation, subtype validation, status)
-  - backend/tests/test_reservations.py (Unit tests for booking, preemption, slot locking)
-  - backend/tests/concurrency_test.py (Load simulation for high-concurrency race conditions)
-  - backend/tests/test_websocket.py (Live WebSocket client handshake and telemetry consumption test)
+Current Status: 27 / 27 Tests Passing (100% Pass Rate)
+
+Test Coverage Breakdown:
+- `backend/tests/test_fleet.py` (14 Tests):
+  * Unauthenticated rejection (401).
+  * Polymorphic Fixed-Wing creation.
+  * Polymorphic Quadcopter and Emergency Medical creation.
+  * Parameter validation and boundary limits (422).
+  * RBAC role authorization (only FLEET_OPERATOR).
+  * Fleet isolation (operators only see their own UAVs).
+  * Status transition logic and ownership security checks (403/404).
+- `backend/tests/test_reservations.py` (12 Tests):
+  * Sector listing (unauthenticated and authenticated).
+  * Time-slot availability validation and boundary checking.
+  * Unauthenticated and cross-operator booking rejections.
+  * In-flight busy drone conflict detection.
+  * High-concurrency pessimistic locking (`409 Conflict` on capacity saturation).
+  * Reservation cancellation flow and automated audit trail logging.
+  * Regulator emergency corridor preemption and slot re-allocation.
+- `backend/tests/test_websocket.py` (1 Test):
+  * Asynchronous live WebSocket handshake, client subscription, and telemetry broadcast verification.
+- `backend/tests/concurrency_test.py`:
+  * Asynchronous stress test launching 20 concurrent booking attempts against 5 slots.
 
 ================================================================================
 5. COMPLETE DIRECTORY & FILE MANIFEST
 ================================================================================
 .
 ├── .env.example
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── .gitignore
 ├── README.md
 ├── PROGRESS.txt  <-- (This detailed progress document)
+├── docker-compose.yml
 ├── backend/
+│   ├── Dockerfile
 │   ├── alembic.ini
 │   ├── database.py
 │   ├── main.py
 │   ├── models.py
+│   ├── requirements.txt
 │   ├── seed_reservations.py
 │   ├── .env
 │   ├── .env.example
@@ -558,7 +771,10 @@ Test Files:
 │       ├── test_reservations.py
 │       └── test_websocket.py
 └── frontend/
+    ├── Dockerfile
+    ├── README.md
     ├── index.html
+    ├── nginx.conf
     ├── package.json
     ├── package-lock.json
     ├── postcss.config.js
@@ -567,22 +783,34 @@ Test Files:
     ├── tsconfig.app.json
     ├── tsconfig.node.json
     ├── vite.config.ts
+    ├── .gitignore
     ├── .oxlintrc.json
     ├── public/
     │   ├── favicon.svg
     │   └── icons.svg
+    ├── shared/
+    │   └── index.ts
     └── src/
         ├── App.tsx
         ├── App.css
         ├── index.css
         ├── main.tsx
         ├── assets/
+        │   ├── hero.png
+        │   ├── react.svg
+        │   └── vite.svg
         ├── fleet/
         │   ├── index.tsx
         │   ├── types.ts
         │   └── components/
         │       ├── DroneList.tsx
         │       └── RegisterDroneModal.tsx
+        ├── regulator/
+        │   ├── index.tsx
+        │   ├── types.ts
+        │   └── components/
+        │       ├── AuditTrailTable.tsx
+        │       └── OperatorTable.tsx
         ├── reservations/
         │   ├── index.tsx
         │   ├── types.ts
@@ -592,6 +820,13 @@ Test Files:
         │       ├── EmergencyPreemption.tsx
         │       ├── MyReservations.tsx
         │       └── SectorMap.tsx
+        ├── telemetry/
+        │   ├── index.tsx
+        │   ├── types.ts
+        │   └── components/
+        │       ├── AlertsBanner.tsx
+        │       ├── RadarMap.tsx
+        │       └── TelemetryHUD.tsx
         └── shared/
             ├── index.ts
             ├── components/
@@ -613,6 +848,7 @@ Test Files:
 
 1. Start PostgreSQL Database:
    Ensure PostgreSQL is running locally on port 5432 with database `utm_drone_db`.
+   (Note: If PostgreSQL is offline, system automatically falls back to local SQLite `utm_drone.db`).
 
 2. Start Redis Server:
    Ensure Redis server is running locally on port 6379 (`redis-server`).
@@ -635,7 +871,7 @@ Test Files:
    npm run dev
    -> Web Application: http://localhost:5173
 
-7. Run Automated Test Suite:
+7. Run Automated Test Suite (27/27 Tests):
    cd backend
    .\venv\Scripts\python.exe -m pytest tests/ -v
 
@@ -652,22 +888,23 @@ Test Files:
 ================================================================================
 7. FUTURE ROADMAP & PENDING MODULES
 ================================================================================
-1. Module 5: Live Telemetry & Radar Map (Frontend Visualizer - COMPLETED)
-   - [x] Backend Redis telemetry caching and REST ingestion (`/api/telemetry`).
-   - [x] Real-time WebSocket streaming server (`/ws/telemetry`).
-   - [x] Frontend interactive dark aerospace SVG radar map dashboard (`RadarMap.tsx`).
-   - [x] Live drone positioning markers with heading orientation and flight path trails.
-   - [x] Real-time altitude deviation alerts, geofence violations, and battery warnings.
-   - [x] Built-in flight telemetry simulation engine.
-2. Module 6: Regulator Airspace Console (Frontend Full UI Implementation - COMPLETED)
-   - [x] Interactive suspension switch for non-compliant operators (`OperatorTable.tsx`).
-   - [x] Searchable, exportable audit trail visualization with CSV download (`AuditTrailTable.tsx`).
-   - [x] Regulator overview metrics and KPI statistics.
-3. Module 7: Deployment & Containerization (COMPLETED)
-   - [x] Production Dockerfile for backend (Python 3.12-slim) and frontend (Node 20 + Nginx).
-   - [x] Root docker-compose.yml orchestrating PostgreSQL, Redis, backend, and frontend.
-   - [x] Production Nginx reverse proxy configuration with WebSocket upgrade headers.
-   - [x] CI/CD GitHub Actions workflow (`.github/workflows/ci.yml`) for automated testing and linting.
+Core Platform Modules (100% Completed):
+- [x] Module 1: Identity, Authentication & Role-Based Access Control (RBAC).
+- [x] Module 2: Fleet Management & Polymorphic Drone Subtypes.
+- [x] Module 3: Airspace Sector & Time-Slot Reservation Engine.
+- [x] Module 4: High-Concurrency Lock Engine & Emergency Preemption.
+- [x] Module 5: Real-Time Telemetry & WebSocket Streaming Engine (Backend + Frontend Radar HUD).
+- [x] Module 6: Regulator Airspace Console & Regulatory Audit Trail.
+- [x] Module 7: Production Containerization (Docker Compose, Nginx) & CI/CD Pipeline.
+
+Potential Advanced Extensions:
+1. AI-Driven Trajectory Deconfliction:
+   - Automated 4D trajectory conflict detection (latitude, longitude, altitude, time window)
+     using predictive path extrapolation.
+2. 3D Geospatial Airspace Visualization:
+   - Cesium / Three.js 3D volumetric corridor rendering for complex urban canyon navigation.
+3. Hardware Remote ID & ADS-B Ingestion:
+   - Direct Open Drone ID / ASTM F3411 broadcast receiver ingestion over MQTT / LoRaWAN gateways.
 ================================================================================
 END OF PROGRESS REPORT
 ================================================================================

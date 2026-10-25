@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 export const RegulatorPage: React.FC = () => {
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const [activeTab, setActiveTab] = useState<"operators" | "audit">("operators");
   const [operators, setOperators] = useState<OperatorItem[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);

@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+os.environ["LOGIN_RATE_LIMIT"] = "1000/minute"
 from main import app
 from database import Base, get_db
 from modules.identity.models import Operator

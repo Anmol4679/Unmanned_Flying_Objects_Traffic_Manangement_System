@@ -15,6 +15,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Capture running event loop for non-blocking WebSocket audit broadcasting
+    import asyncio
+    from modules.identity.audit import set_main_loop
+    try:
+        set_main_loop(asyncio.get_running_loop())
+    except Exception:
+        pass
+
     # Automatic database initialization & demo data seeding on startup
     try:
         from database import engine, Base, SessionLocal

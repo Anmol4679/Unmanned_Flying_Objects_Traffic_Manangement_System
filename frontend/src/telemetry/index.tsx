@@ -4,10 +4,10 @@ import { RadarMap } from "./components/RadarMap";
 import { TelemetryHUD } from "./components/TelemetryHUD";
 import { AlertsBanner } from "./components/AlertsBanner";
 import type { TelemetryPoint, SectorBoundary, TelemetryAlert } from "./types";
-import { Radar, Play, Square, Wifi, WifiOff, RefreshCw } from "lucide-react";
+import { Radar, Play, Square, Wifi, WifiOff } from "lucide-react";
 
 export const TelemetryPage: React.FC = () => {
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const [telemetries, setTelemetries] = useState<Map<string, TelemetryPoint>>(new Map());
   const [sectors, setSectors] = useState<SectorBoundary[]>([]);
   const [selectedDroneId, setSelectedDroneId] = useState<string | null>(null);
@@ -16,8 +16,8 @@ export const TelemetryPage: React.FC = () => {
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
 
   const socketRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const simulationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const simulationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // 1. Fetch Airspace Sectors
   useEffect(() => {

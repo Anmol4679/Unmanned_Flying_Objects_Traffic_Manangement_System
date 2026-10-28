@@ -1,6 +1,6 @@
 """
 UTM AEROSHIELD — Unmanned Flying Objects Traffic Management System
-Streamlit Cloud & Standalone Deployment Application
+Pixel-Perfect Aerospace Frontend UI (Replicating Local React 19 App)
 """
 
 import os
@@ -32,98 +32,147 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# Custom Modern Aerospace CSS
+# Exact Local Theme CSS (Tailwind matching #090d16, #0f172a, #15203b, #0ea5e9)
 # ---------------------------------------------------------
 st.markdown("""
 <style>
-    /* Dark Aerospace Theme */
+    /* Hide Streamlit default chrome */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stAppDeployButton {display:none;}
+    [data-testid="stToolbar"] {display: none;}
+    [data-testid="stHeader"] {display: none;}
+    
+    /* Global Base */
     .stApp {
-        background-color: #090d16;
-        color: #e2e8f0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: #090d16 !important;
+        color: #f1f5f9 !important;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
     
-    /* Top Header Banner */
-    .aero-header {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        border: 1px solid #334155;
-        border-radius: 12px;
-        padding: 20px 24px;
-        margin-bottom: 24px;
-        box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+    .block-container {
+        padding-top: 1.2rem !important;
+        padding-bottom: 2rem !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        max-width: 100% !important;
+    }
+    
+    /* Sidebar Styling */
+    [data-testid="stSidebar"] {
+        background-color: #0f172a !important;
+        border-right: 1px solid #1e293b !important;
+    }
+    
+    /* Top App Bar */
+    .top-app-bar {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border-bottom: 1px solid #1e293b;
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
     }
-    .aero-title {
-        font-size: 1.8rem;
-        font-weight: 800;
+    .top-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ffffff;
         letter-spacing: -0.02em;
-        background: linear-gradient(to right, #38bdf8, #818cf8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
         margin: 0;
     }
-    .aero-subtitle {
+    .top-subtitle {
         color: #94a3b8;
-        font-size: 0.9rem;
-        margin-top: 4px;
-        font-weight: 500;
+        font-size: 0.8rem;
+        margin-top: 2px;
     }
     
-    /* Status Badges */
-    .badge {
-        display: inline-block;
-        padding: 4px 10px;
+    /* Tactical Pills & Badges */
+    .sys-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
         border-radius: 9999px;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 700;
         letter-spacing: 0.05em;
         text-transform: uppercase;
+        font-family: ui-monospace, SFMono-Regular, monospace;
     }
-    .badge-green { background-color: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
-    .badge-blue { background-color: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
-    .badge-amber { background-color: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
-    .badge-red { background-color: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .badge-live {
+        background: rgba(14, 165, 233, 0.12);
+        color: #38bdf8;
+        border: 1px solid rgba(14, 165, 233, 0.3);
+    }
+    .badge-ok {
+        background: rgba(16, 185, 129, 0.12);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
     
-    /* Card Container */
-    .metric-card {
-        background: #0f172a;
+    /* Aerospace Metric Card */
+    .utm-stat-card {
+        background: #15203b;
         border: 1px solid #1e293b;
-        border-radius: 10px;
-        padding: 16px;
-        margin-bottom: 12px;
+        border-radius: 14px;
+        padding: 16px 20px;
+        transition: all 0.2s ease;
     }
-    .metric-title {
-        color: #64748b;
-        font-size: 0.8rem;
+    .utm-stat-label {
+        font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
-        margin-bottom: 6px;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
     }
-    .metric-val {
-        color: #f8fafc;
-        font-size: 1.4rem;
-        font-weight: 700;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    .utm-stat-val {
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin-top: 4px;
     }
     
-    /* Telemetry HUD display */
-    .hud-box {
-        background-color: #020617;
+    /* Polymorphic Drone Card */
+    .drone-card {
+        background: #15203b;
+        border: 1px solid #1e293b;
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 12px;
+    }
+    .drone-card:hover {
+        border-color: #334155;
+    }
+    
+    /* HUD Box */
+    .radar-hud-panel {
+        background: #080d1a;
         border: 1px solid #0284c7;
-        border-radius: 8px;
-        padding: 14px;
-        color: #38bdf8;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        box-shadow: inset 0 0 15px rgba(2, 132, 199, 0.15);
+        border-radius: 12px;
+        padding: 18px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+        box-shadow: 0 0 25px -5px rgba(14, 165, 233, 0.25);
+    }
+    
+    /* Form Inputs & Buttons override */
+    .stButton>button {
+        background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%) !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 0.5rem 1.2rem !important;
+        box-shadow: 0 0 15px -3px rgba(14, 165, 233, 0.4) !important;
+    }
+    .stButton>button:hover {
+        opacity: 0.9 !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------
-# Database Engine Initialization & Automatic Fallback
+# Database Schema & Initialization
 # ---------------------------------------------------------
 Base = declarative_base()
 
@@ -157,14 +206,12 @@ class Drone(Base):
     max_altitude_m = Column(Numeric(6, 2), nullable=False, default=120.0)
     battery_capacity_pct = Column(Numeric(5, 2), nullable=False, default=100.0)
     status = Column(String(20), nullable=False, default="IDLE")
-    # Polymorphic Attributes
     rotor_count = Column(Integer, nullable=True)
     max_payload_kg = Column(Numeric(5, 2), nullable=True)
     wingspan_m = Column(Numeric(5, 2), nullable=True)
     glide_ratio = Column(Numeric(5, 2), nullable=True)
     medical_kit_type = Column(String(50), nullable=True)
     priority_level = Column(String(20), nullable=True)
-
     operator = relationship("Operator", back_populates="drones")
 
 class AirspaceSector(Base):
@@ -204,11 +251,13 @@ class Reservation(Base):
 
 
 @st.cache_resource
-def get_database_engine():
-    """Initializes PostgreSQL if available, otherwise seamlessly falls back to embedded SQLite."""
+def get_database():
     db_url = os.getenv("DATABASE_URL")
-    if not db_url and hasattr(st, "secrets") and "DATABASE_URL" in st.secrets:
-        db_url = st.secrets["DATABASE_URL"]
+    try:
+        if not db_url and hasattr(st, "secrets") and "DATABASE_URL" in st.secrets:
+            db_url = st.secrets["DATABASE_URL"]
+    except Exception:
+        pass
 
     engine = None
     if db_url and db_url.startswith("postgresql"):
@@ -225,27 +274,24 @@ def get_database_engine():
         sqlite_path = os.path.join(CURRENT_DIR, "utm_aeroshield.db")
         engine = create_engine(f"sqlite:///{sqlite_path}", connect_args={"check_same_thread": False})
         Base.metadata.create_all(engine)
-        seed_sqlite_database(engine)
+        seed_sqlite(engine)
 
     return engine
 
 
-def seed_sqlite_database(engine):
-    """Populates SQLite with realistic sectors, slots, operators, polymorphic drones, and audit records."""
+def seed_sqlite(engine):
     Session = sessionmaker(bind=engine)
     session = Session()
     try:
         if session.query(Operator).count() > 0:
             return
 
-        # 1. Operators
-        regulator = Operator(name="Anmol Saluja (DGCA)", license_no="LIC-REG-001", role="REGULATOR", password_hash="dummy")
-        fleet_op = Operator(name="AeroFleet Logistics", license_no="LIC-FLEET-001", role="FLEET_OPERATOR", password_hash="dummy")
-        dispatcher = Operator(name="SkyRoute Dispatch", license_no="LIC-DISP-001", role="DISPATCHER", password_hash="dummy")
+        regulator = Operator(name="Anmol Saluja (DGCA)", license_no="LIC-REG-001", role="REGULATOR")
+        fleet_op = Operator(name="AeroFleet Logistics", license_no="LIC-FLEET-001", role="FLEET_OPERATOR")
+        dispatcher = Operator(name="SkyRoute Dispatch", license_no="LIC-DISP-001", role="DISPATCHER")
         session.add_all([regulator, fleet_op, dispatcher])
         session.flush()
 
-        # 2. Airspace Sectors (Bengaluru Airspace Grid)
         sectors_data = [
             dict(sector_name="SECTOR-A (North)", min_lat=13.1000, max_lat=13.3500, min_lon=77.5000, max_lon=77.7500, floor_altitude_m=0, ceiling_altitude_m=120),
             dict(sector_name="SECTOR-B (East Transit)", min_lat=13.1000, max_lat=13.3500, min_lon=77.7500, max_lon=78.0000, floor_altitude_m=120, ceiling_altitude_m=250),
@@ -259,7 +305,6 @@ def seed_sqlite_database(engine):
             created_sectors.append(sec)
         session.flush()
 
-        # 3. Polymorphic Drones
         drone1 = Drone(
             operator_id=fleet_op.operator_id,
             drone_type="QUADCOPTER",
@@ -303,13 +348,12 @@ def seed_sqlite_database(engine):
         session.add_all([drone1, drone2, drone3, drone4])
         session.flush()
 
-        # 4. Generate 30-min Time Slots for Today and Tomorrow
         base_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0, hour=8)
         created_slots = []
         for sec in created_sectors:
             for day in range(2):
                 day_start = base_time + timedelta(days=day)
-                for h in range(12): # 8am to 8pm
+                for h in range(12):
                     slot_start = day_start + timedelta(minutes=30 * h)
                     slot_end = slot_start + timedelta(minutes=30)
                     ts = TimeSlot(sector_id=sec.sector_id, start_time=slot_start, end_time=slot_end, is_booked=False)
@@ -317,31 +361,22 @@ def seed_sqlite_database(engine):
                     created_slots.append(ts)
         session.flush()
 
-        # 5. Book a couple of slots
         if len(created_slots) >= 2:
-            slot1 = created_slots[0]
-            slot1.is_booked = True
-            res1 = Reservation(slot_id=slot1.slot_id, drone_id=drone1.drone_id, operator_id=fleet_op.operator_id, priority="STANDARD", status="CONFIRMED")
-            session.add(res1)
+            created_slots[0].is_booked = True
+            session.add(Reservation(slot_id=created_slots[0].slot_id, drone_id=drone1.drone_id, operator_id=fleet_op.operator_id, priority="STANDARD", status="CONFIRMED"))
+            created_slots[1].is_booked = True
+            session.add(Reservation(slot_id=created_slots[1].slot_id, drone_id=drone3.drone_id, operator_id=fleet_op.operator_id, priority="CRITICAL", status="CONFIRMED"))
 
-            slot2 = created_slots[1]
-            slot2.is_booked = True
-            res2 = Reservation(slot_id=slot2.slot_id, drone_id=drone3.drone_id, operator_id=fleet_op.operator_id, priority="CRITICAL", status="CONFIRMED")
-            session.add(res2)
-
-        # 6. Audit Trail Logs
-        session.add(AuditLog(actor_id=regulator.operator_id, actor_license="LIC-REG-001", action="SYSTEM_INIT", entity="SYSTEM", entity_id=1, details="UTM AEROSHIELD Engine Initialized"))
+        session.add(AuditLog(actor_id=regulator.operator_id, actor_license="LIC-REG-001", action="SYSTEM_INIT", entity="SYSTEM", entity_id=1, details="UTM AEROSHIELD Initialized"))
         session.add(AuditLog(actor_id=fleet_op.operator_id, actor_license="LIC-FLEET-001", action="REGISTER_DRONE", entity="DRONE", entity_id=drone3.drone_id, details="Registered Emergency Medical Drone: AeroMed Lifeline-1"))
-        session.add(AuditLog(actor_id=fleet_op.operator_id, actor_license="LIC-FLEET-001", action="RESERVE_SLOT", entity="SLOT", entity_id=created_slots[0].slot_id, details="Standard Airspace Booking"))
-
         session.commit()
-    except Exception as e:
+    except Exception:
         session.rollback()
     finally:
         session.close()
 
 
-engine = get_database_engine()
+engine = get_database()
 SessionLocal = sessionmaker(bind=engine)
 
 
@@ -368,8 +403,8 @@ if "telemetry" not in st.session_state:
             "id": 2,
             "callsign": "SHIELD-BRAVO",
             "type": "Fixed-Wing VTOL",
-            "lat": 13.1250,
-            "lon": 77.6200,
+            "lat": 13.1450,
+            "lon": 77.6800,
             "altitude": 195.0,
             "speed": 28.5,
             "heading": 135.0,
@@ -382,8 +417,8 @@ if "telemetry" not in st.session_state:
             "id": 3,
             "callsign": "MEDIC-CORRIDOR-1",
             "type": "Emergency Medical",
-            "lat": 13.0100,
-            "lon": 77.5500,
+            "lat": 13.1800,
+            "lon": 77.5600,
             "altitude": 115.0,
             "speed": 22.0,
             "heading": 88.0,
@@ -395,468 +430,540 @@ if "telemetry" not in st.session_state:
     }
 
 
-def advance_telemetry_simulation():
-    """Simulates realistic flight movement along vectors with altitude and battery drift."""
-    for key, d in st.session_state.telemetry.items():
+def step_simulation():
+    for k, d in st.session_state.telemetry.items():
         if d["status"] == "IN_FLIGHT":
-            # Advance coordinates slightly
-            angle_rad = math.radians(d["heading"])
-            speed_deg = (d["speed"] * 0.00001)
-            d["lat"] += math.cos(angle_rad) * speed_deg
-            d["lon"] += math.sin(angle_rad) * speed_deg
-            
-            # Minor altitude fluctuations
-            alt_delta = random.choice([-1.5, 0.0, 1.0, 2.5, -0.5])
-            d["altitude"] = max(20.0, min(400.0, d["altitude"] + alt_delta))
-            
-            # Battery drain
-            d["battery"] = max(5.0, round(d["battery"] - 0.08, 1))
-            
-            # Slight heading adjustment
-            d["heading"] = (d["heading"] + random.uniform(-4.0, 4.0)) % 360
+            rad = math.radians(d["heading"])
+            d["lat"] += math.cos(rad) * 0.0012
+            d["lon"] += math.sin(rad) * 0.0012
+            d["altitude"] = max(20.0, min(380.0, d["altitude"] + random.choice([-2.0, 0.0, 1.5, 3.0, -1.0])))
+            d["battery"] = max(5.0, round(d["battery"] - 0.1, 1))
+            d["heading"] = (d["heading"] + random.uniform(-5.0, 5.0)) % 360
 
 
 # ---------------------------------------------------------
-# Sidebar: Role Switching & Session Info
+# Sidebar Matching React Layout (AppLayout.tsx)
 # ---------------------------------------------------------
 with st.sidebar:
-    st.markdown("### 🛡️ Role & Identity")
-    selected_role_label = st.selectbox(
-        "Active Persona",
+    # Brand Header matching React
+    st.markdown("""
+    <div style="display: flex; align-items: center; gap: 12px; padding: 6px 0 16px 0; border-bottom: 1px solid #1e293b;">
+        <div style="background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px -3px rgba(14, 165, 233, 0.4);">
+            <span style="font-size: 1.2rem;">📡</span>
+        </div>
+        <div>
+            <div style="font-size: 0.95rem; font-weight: 800; color: #ffffff; letter-spacing: 0.05em;">UTM AEROSHIELD</div>
+            <div style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.08em;">Traffic Mgmt System</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div style='font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.08em; margin: 18px 0 8px 4px;'>Control Navigation</div>", unsafe_allow_html=True)
+
+    nav_selection = st.radio(
+        "Navigation",
         [
-            "🛡️ Civil Aviation Regulator (LIC-REG-001)",
-            "🛸 Commercial Fleet Operator (LIC-FLEET-001)",
-            "📡 Airspace Dispatcher (LIC-DISP-001)"
-        ]
+            "📊 Operator Dashboard",
+            "📡 Live Telemetry Map",
+            "✈️ Fleet Management",
+            "📅 Airspace Reservation",
+            "🛡️ Regulator Console"
+        ],
+        label_visibility="collapsed"
     )
-    
-    if "Regulator" in selected_role_label:
-        current_role = "REGULATOR"
-        current_actor_id = 1
-        current_license = "LIC-REG-001"
-        st.info("Authorized for **Emergency Corridor Preemption**, Operator Licensing, and Full Audit Access.")
-    elif "Operator" in selected_role_label:
-        current_role = "FLEET_OPERATOR"
-        current_actor_id = 2
-        current_license = "LIC-FLEET-001"
-        st.info("Authorized for Fleet Management, 4D Slot Booking, and Telemetry Monitoring.")
-    else:
-        current_role = "DISPATCHER"
-        current_actor_id = 3
-        current_license = "LIC-DISP-001"
-        st.info("Authorized for Flight Scheduling, Route Optimization, and Airspace Deconfliction.")
 
     st.markdown("---")
-    st.markdown("### ⚙️ System Diagnostics")
-    st.markdown(f"**Database:** `{engine.dialect.name.upper()}`")
-    st.markdown(f"**Active Drones:** `{len(st.session_state.telemetry)} tracking`")
-    st.markdown(f"**Ceiling Limit:** `120m AGL (Standard)`")
-    st.markdown(f"**Deconfliction:** `SELECT FOR UPDATE`")
+    st.markdown("<div style='font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.08em; margin-bottom: 8px;'>Active Operator Session</div>", unsafe_allow_html=True)
     
-    st.markdown("---")
+    role_choice = st.selectbox(
+        "Switch Persona",
+        [
+            "Civil Aviation Regulator (LIC-REG-001)",
+            "Fleet Operator (LIC-FLEET-001)",
+            "Airspace Dispatcher (LIC-DISP-001)"
+        ],
+        label_visibility="collapsed"
+    )
+
+    if "Regulator" in role_choice:
+        curr_role = "REGULATOR"
+        curr_actor_id = 1
+        curr_license = "LIC-REG-001"
+        curr_name = "Anmol Saluja (DGCA)"
+        badge_bg = "background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);"
+    elif "Fleet" in role_choice:
+        curr_role = "FLEET_OPERATOR"
+        curr_actor_id = 2
+        curr_license = "LIC-FLEET-001"
+        curr_name = "AeroFleet Logistics"
+        badge_bg = "background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.3);"
+    else:
+        curr_role = "DISPATCHER"
+        curr_actor_id = 3
+        curr_license = "LIC-DISP-001"
+        curr_name = "SkyRoute Dispatch"
+        badge_bg = "background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);"
+
+    st.markdown(f"""
+    <div style="background: #15203b; border: 1px solid #1e293b; border-radius: 12px; padding: 12px; margin-top: 8px;">
+        <div style="font-size: 0.8rem; font-weight: 700; color: #f8fafc;">{curr_name}</div>
+        <div style="font-size: 0.7rem; font-family: ui-monospace, monospace; color: #94a3b8;">{curr_license}</div>
+        <div style="margin-top: 8px;">
+            <span style="{badge_bg} padding: 3px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 700;">{curr_role}</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
     if st.button("🔄 Step Radar Simulation", use_container_width=True):
-        advance_telemetry_simulation()
+        step_simulation()
         st.rerun()
 
 
 # ---------------------------------------------------------
-# Top Navigation & Header
+# Top Header Bar
 # ---------------------------------------------------------
-st.markdown("""
-<div class="aero-header">
+current_page_name = nav_selection.split(" ", 1)[1]
+st.markdown(f"""
+<div class="top-app-bar">
     <div>
-        <h1 class="aero-title">UTM AEROSHIELD</h1>
-        <div class="aero-subtitle">Distributed Unmanned Aircraft System Traffic Management & 4D Spatio-Temporal Deconfliction</div>
+        <h1 class="top-title">{current_page_name}</h1>
+        <div class="top-subtitle">UTM AEROSHIELD · 4D Spatio-Temporal Airspace Deconfliction Engine</div>
     </div>
-    <div>
-        <span class="badge badge-green">● RADAR LIVE</span>
-        <span class="badge badge-blue">PG 16 / SQLITE</span>
-        <span class="badge badge-amber">CONCURRENCY LOCKED</span>
+    <div style="display: flex; gap: 8px;">
+        <span class="sys-badge badge-ok">● SYSTEM OPERATIONAL</span>
+        <span class="sys-badge badge-live">PG 16 / SQLITE</span>
+        <span class="sys-badge" style="background: rgba(168, 85, 247, 0.12); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);">SECURE JWT / ROW-LOCK</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
 
-tabs = st.tabs([
-    "🛰️ 4D Radar & Telemetry HUD",
-    "🗓️ Airspace Slots & Concurrency",
-    "🚁 Polymorphic Fleet",
-    "⚖️ Regulator Console & Audit Trail"
-])
+# =========================================================
+# VIEW 1: 📊 Operator Dashboard
+# =========================================================
+if "Operator Dashboard" in nav_selection:
+    db = SessionLocal()
+    try:
+        drones_count = db.query(Drone).count()
+        slots_count = db.query(TimeSlot).count()
+        booked_slots = db.query(TimeSlot).filter(TimeSlot.is_booked == True).count()
+        audit_count = db.query(AuditLog).count()
+        
+        # 4 Metric Cards
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            st.markdown(f"""
+            <div class="utm-stat-card">
+                <div class="utm-stat-label">Total Registered Fleet</div>
+                <div class="utm-stat-val" style="color: #38bdf8;">{drones_count} UAVs</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with c2:
+            st.markdown(f"""
+            <div class="utm-stat-card">
+                <div class="utm-stat-label">Active Airspace Corridors</div>
+                <div class="utm-stat-val" style="color: #34d399;">{booked_slots} / {slots_count}</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with c3:
+            st.markdown(f"""
+            <div class="utm-stat-card">
+                <div class="utm-stat-label">Deconfliction Guarantee</div>
+                <div class="utm-stat-val" style="color: #a855f7;">100.0%</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with c4:
+            st.markdown(f"""
+            <div class="utm-stat-card">
+                <div class="utm-stat-label">Ceiling Violations</div>
+                <div class="utm-stat-val" style="color: #f87171;">0 Breaches</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<div style='margin-top: 24px;'></div>", unsafe_allow_html=True)
+        
+        col_left, col_right = st.columns([2, 1])
+        with col_left:
+            st.markdown("#### 🛸 Active Fleet Inventory")
+            d_list = db.query(Drone).all()
+            d_rows = [{
+                "ID": d.drone_id,
+                "Model Name": d.model_name,
+                "Subtype": d.drone_type,
+                "Status": d.status,
+                "Battery": f"{d.battery_capacity_pct}%",
+                "Max Altitude": f"{d.max_altitude_m}m"
+            } for d in d_list]
+            st.dataframe(pd.DataFrame(d_rows), use_container_width=True, hide_index=True)
+
+        with col_right:
+            st.markdown("#### ⚡ Quick Actions")
+            st.markdown("""
+            <div style="background: #15203b; border: 1px solid #1e293b; border-radius: 12px; padding: 16px;">
+                <div style="font-size: 0.85rem; font-weight: 700; color: #f8fafc; margin-bottom: 6px;">Tactical Flight Controls</div>
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 14px;">Switch views from the sidebar to inspect radar feeds, book new corridors, or review the audit log.</div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("🛰️ Open Radar Map", use_container_width=True):
+                st.session_state["nav"] = "📡 Live Telemetry Map"
+                st.rerun()
+    finally:
+        db.close()
 
 
 # =========================================================
-# TAB 1: 🛰️ Live 4D Radar & Telemetry HUD
+# VIEW 2: 📡 Live Telemetry Map (SVG Tactical Radar)
 # =========================================================
-with tabs[0]:
-    st.markdown("### 🛰️ Real-Time 4D Airspace Radar Feed")
-    st.caption("High-frequency GPS coordinate streaming, altitude ceiling breach detection, and spatial sector geofencing.")
-    
-    # Check for ceiling breaches
-    breaches = [f"⚠️ **BREACH DETECTED:** {d['callsign']} ({d['type']}) is at **{d['altitude']:.1f}m** — Exceeding 120m standard ceiling in {d['sector']}!" 
+elif "Live Telemetry Map" in nav_selection:
+    # Altitude warning checks
+    breaches = [f"⚠️ **ALTITUDE BREACH:** {d['callsign']} is at **{d['altitude']:.1f}m** AGL — Exceeding 120m standard ceiling in {d['sector']}!" 
                 for d in st.session_state.telemetry.values() if d["altitude"] > 120.0 and "High Altitude" not in d["sector"]]
     for b in breaches:
         st.error(b)
 
-    col_map, col_hud = st.columns([2, 1])
+    col_radar, col_hud = st.columns([2, 1])
 
-    with col_map:
-        # Prepare DataFrame for PyDeck Map
-        map_data = []
+    with col_radar:
+        # Build SVG Tactical Radar Map exactly like React RadarMap.tsx
+        drones_svg = ""
         for k, d in st.session_state.telemetry.items():
-            color = [239, 68, 68] if d["priority"] == "CRITICAL" else ([56, 189, 248] if "Quadcopter" in d["type"] else [245, 158, 11])
-            map_data.append({
-                "name": d["callsign"],
-                "lat": d["lat"],
-                "lon": d["lon"],
-                "altitude": d["altitude"],
-                "speed": d["speed"],
-                "heading": d["heading"],
-                "color": color,
-                "radius": 220 if d["priority"] == "CRITICAL" else 150
-            })
-        df_map = pd.DataFrame(map_data)
-
-        try:
-            import pydeck as pdk
+            # Coordinate mapping to 1000x1000 SVG canvas
+            # Bounding box: lat [12.80..13.40], lon [77.40..78.10]
+            cx = ((d["lon"] - 77.40) / (78.10 - 77.40)) * 1000
+            cy = 1000 - ((d["lat"] - 12.80) / (13.40 - 12.80)) * 1000
             
-            # Sectors Bounding Polygons
-            sectors_polygon = [
-                {
-                    "name": "SECTOR-A (North 0-120m)",
-                    "polygon": [[77.50, 13.10], [77.75, 13.10], [77.75, 13.35], [77.50, 13.35]],
-                    "fill": [16, 185, 129, 35],
-                    "line": [16, 185, 129, 180]
-                },
-                {
-                    "name": "SECTOR-B (East 120-250m)",
-                    "polygon": [[77.75, 13.10], [78.00, 13.10], [78.00, 13.35], [77.75, 13.35]],
-                    "fill": [56, 189, 248, 35],
-                    "line": [56, 189, 248, 180]
-                },
-                {
-                    "name": "SECTOR-C (CBD Urban 0-120m)",
-                    "polygon": [[77.50, 12.85], [77.75, 12.85], [77.75, 13.10], [77.50, 13.10]],
-                    "fill": [245, 158, 11, 35],
-                    "line": [245, 158, 11, 180]
-                },
-                {
-                    "name": "SECTOR-D (High Altitude 250-500m)",
-                    "polygon": [[77.75, 12.85], [78.00, 12.85], [78.00, 13.10], [77.75, 13.10]],
-                    "fill": [129, 140, 248, 35],
-                    "line": [129, 140, 248, 180]
-                }
-            ]
+            is_critical = d["priority"] == "CRITICAL"
+            dot_color = "#ef4444" if is_critical else ("#0ea5e9" if "Quadcopter" in d["type"] else "#f59e0b")
+            heading_angle = d["heading"]
+            
+            drones_svg += f"""
+            <g transform="translate({cx},{cy})">
+                <circle r="18" fill="none" stroke="{dot_color}" stroke-width="1.5" opacity="0.4">
+                    <animate attributeName="r" values="8;24;8" dur="2s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite" />
+                </circle>
+                <circle r="7" fill="{dot_color}" stroke="#ffffff" stroke-width="2" />
+                <line x1="0" y1="0" x2="0" y2="-22" stroke="{dot_color}" stroke-width="2.5" transform="rotate({heading_angle})" />
+                <text x="12" y="4" fill="#ffffff" font-size="11" font-weight="bold" font-family="ui-monospace">{d['callsign']}</text>
+                <text x="12" y="18" fill="#94a3b8" font-size="9" font-family="ui-monospace">{d['altitude']:.0f}m · {d['speed']:.0f}m/s</text>
+            </g>
+            """
 
-            deck = pdk.Deck(
-                map_style="mapbox://styles/mapbox/dark-v10",
-                initial_view_state=pdk.ViewState(
-                    latitude=13.04,
-                    longitude=77.65,
-                    zoom=9.5,
-                    pitch=45,
-                ),
-                layers=[
-                    pdk.Layer(
-                        "PolygonLayer",
-                        sectors_polygon,
-                        get_polygon="-polygon",
-                        get_fill_color="fill",
-                        get_line_color="line",
-                        get_line_width=40,
-                        pickable=True,
-                    ),
-                    pdk.Layer(
-                        "ScatterplotLayer",
-                        df_map,
-                        get_position="[lon, lat]",
-                        get_color="color",
-                        get_radius="radius",
-                        pickable=True,
-                    ),
-                ],
-                tooltip={"html": "<b>{name}</b><br/>Alt: {altitude}m AGL<br/>Speed: {speed} m/s<br/>Heading: {heading}°"}
-            )
-            st.pydeck_chart(deck, use_container_width=True)
-        except Exception:
-            # Native Streamlit Map Fallback
-            st.map(df_map, latitude="lat", longitude="lon", size="radius", color="color", use_container_width=True)
-
-    with col_hud:
-        st.markdown("#### 📡 Real-Time Telemetry HUD")
-        selected_drone = st.selectbox("Select Aircraft Stream", list(st.session_state.telemetry.keys()))
-        t = st.session_state.telemetry[selected_drone]
-        
-        hud_html = f"""
-        <div class="hud-box">
-            <div style="font-size: 1.1rem; font-weight: bold; color: #f8fafc; margin-bottom: 8px;">
-                {t['callsign']} <span style="font-size: 0.8rem; color: #38bdf8;">[{t['type']}]</span>
+        radar_svg_canvas = f"""
+        <div style="background: #080d1a; border: 1px solid #1e293b; border-radius: 16px; padding: 14px; box-shadow: 0 4px 25px -4px rgba(0,0,0,0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #1e293b; padding-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 10px #38bdf8;"></span>
+                    <span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #f8fafc;">Tactical Airspace Radar Feed</span>
+                </div>
+                <div style="font-size: 0.75rem; font-family: ui-monospace; color: #94a3b8;">Targets: <strong style="color: #38bdf8;">{len(st.session_state.telemetry)} Active</strong></div>
             </div>
-            <div>STATUS: <span style="color: #34d399;">{t['status']}</span></div>
-            <div>PRIORITY: <span style="color: {'#f87171' if t['priority'] == 'CRITICAL' else '#38bdf8'};">{t['priority']}</span></div>
-            <div>AIRSPACE: {t['sector']}</div>
-            <hr style="border: 0; border-top: 1px solid #1e293b; margin: 8px 0;" />
-            <div>ALTITUDE (AGL): <span style="color: {'#f87171' if t['altitude'] > 120 else '#38bdf8'}; font-weight: bold;">{t['altitude']:.1f} m</span></div>
-            <div>GROUND SPEED: {t['speed']:.1f} m/s</div>
-            <div>HEADING: {t['heading']:.1f}°</div>
-            <div>BATTERY: <span style="color: {'#f87171' if t['battery'] < 20 else '#34d399'}; font-weight: bold;">{t['battery']:.1f}%</span></div>
-            <div>GPS COORDS: {t['lat']:.5f}, {t['lon']:.5f}</div>
+            <svg viewBox="0 0 1000 1000" style="width: 100%; aspect-ratio: 1; border-radius: 10px; background: #060913;">
+                <defs>
+                    <radialGradient id="radarSweep" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#0284c7" stop-opacity="0.12" />
+                        <stop offset="100%" stop-color="#0284c7" stop-opacity="0" />
+                    </radialGradient>
+                </defs>
+                
+                <!-- Concentric Range Rings -->
+                <circle cx="500" cy="500" r="150" fill="none" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="4 4" />
+                <circle cx="500" cy="500" r="300" fill="none" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="4 4" />
+                <circle cx="500" cy="500" r="450" fill="url(#radarSweep)" stroke="#334155" stroke-width="1.5" />
+                
+                <!-- Crosshairs & Compass Lines -->
+                <line x1="500" y1="50" x2="500" y2="950" stroke="#1e293b" stroke-width="1" />
+                <line x1="50" y1="500" x2="950" y2="500" stroke="#1e293b" stroke-width="1" />
+                <text x="500" y="40" fill="#38bdf8" font-size="12" font-weight="bold" text-anchor="middle">N 000°</text>
+                <text x="965" y="504" fill="#64748b" font-size="12" font-weight="bold">E</text>
+                <text x="500" y="975" fill="#64748b" font-size="12" font-weight="bold" text-anchor="middle">S</text>
+                <text x="35" y="504" fill="#64748b" font-size="12" font-weight="bold">W</text>
+                
+                <!-- Sector A Bounding Box -->
+                <rect x="142" y="83" width="357" height="417" fill="rgba(16, 185, 129, 0.08)" stroke="#10b981" stroke-width="1.5" stroke-dasharray="6 4" />
+                <text x="155" y="110" fill="#34d399" font-size="12" font-weight="bold" font-family="ui-monospace">SECTOR-A (North 0-120m)</text>
+                
+                <!-- Sector B Bounding Box -->
+                <rect x="500" y="83" width="357" height="417" fill="rgba(56, 189, 248, 0.08)" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="6 4" />
+                <text x="515" y="110" fill="#38bdf8" font-size="12" font-weight="bold" font-family="ui-monospace">SECTOR-B (East 120-250m)</text>
+                
+                <!-- Sector C Bounding Box -->
+                <rect x="142" y="500" width="357" height="417" fill="rgba(245, 158, 11, 0.08)" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="6 4" />
+                <text x="155" y="525" fill="#fbbf24" font-size="12" font-weight="bold" font-family="ui-monospace">SECTOR-C (CBD Urban 0-120m)</text>
+                
+                <!-- Sector D Bounding Box -->
+                <rect x="500" y="500" width="357" height="417" fill="rgba(168, 85, 247, 0.08)" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="6 4" />
+                <text x="515" y="525" fill="#c084fc" font-size="12" font-weight="bold" font-family="ui-monospace">SECTOR-D (High Alt 250-500m)</text>
+
+                <!-- Drones -->
+                {drones_svg}
+            </svg>
         </div>
         """
-        st.markdown(hud_html, unsafe_allow_html=True)
+        st.markdown(radar_svg_canvas, unsafe_allow_html=True)
+
+    with col_hud:
+        st.markdown("#### 🕹️ Tactical Heads-Up Display (HUD)")
+        selected_key = st.selectbox("Select Target Stream", list(st.session_state.telemetry.keys()))
+        t = st.session_state.telemetry[selected_key]
         
-        st.markdown("---")
-        if st.button("⚡ Inject Live Telemetry Packet", use_container_width=True):
-            advance_telemetry_simulation()
-            st.success(f"Streamed coordinate packet for {t['callsign']}.")
+        hud_box = f"""
+        <div class="radar-hud-panel">
+            <div style="font-size: 1.1rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">
+                {t['callsign']}
+            </div>
+            <div style="font-size: 0.75rem; color: #38bdf8; margin-bottom: 12px;">{t['type']}</div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                    <div style="color: #64748b; font-size: 0.65rem; text-transform: uppercase;">STATUS</div>
+                    <div style="color: #34d399; font-weight: 700; font-size: 0.85rem;">{t['status']}</div>
+                </div>
+                <div>
+                    <div style="color: #64748b; font-size: 0.65rem; text-transform: uppercase;">PRIORITY</div>
+                    <div style="color: {'#f87171' if t['priority'] == 'CRITICAL' else '#38bdf8'}; font-weight: 700; font-size: 0.85rem;">{t['priority']}</div>
+                </div>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid #1e293b; margin: 10px 0;" />
+            
+            <div style="margin-bottom: 8px;">
+                <span style="color: #64748b; font-size: 0.7rem;">ALTITUDE (AGL): </span>
+                <strong style="color: {'#f87171' if t['altitude'] > 120 else '#38bdf8'}; font-size: 1.1rem;">{t['altitude']:.1f} m</strong>
+            </div>
+            <div style="margin-bottom: 8px;">
+                <span style="color: #64748b; font-size: 0.7rem;">GROUND SPEED: </span>
+                <strong style="color: #f8fafc;">{t['speed']:.1f} m/s</strong>
+            </div>
+            <div style="margin-bottom: 8px;">
+                <span style="color: #64748b; font-size: 0.7rem;">HEADING: </span>
+                <strong style="color: #f8fafc;">{t['heading']:.1f}°</strong>
+            </div>
+            <div style="margin-bottom: 8px;">
+                <span style="color: #64748b; font-size: 0.7rem;">BATTERY LEVEL: </span>
+                <strong style="color: {'#f87171' if t['battery'] < 20 else '#34d399'};">{t['battery']:.1f}%</strong>
+            </div>
+            <div>
+                <span style="color: #64748b; font-size: 0.7rem;">COORDINATES: </span>
+                <span style="font-size: 0.75rem; color: #94a3b8;">{t['lat']:.5f}, {t['lon']:.5f}</span>
+            </div>
+        </div>
+        """
+        st.markdown(hud_box, unsafe_allow_html=True)
+        
+        st.markdown("<div style='margin-top: 16px;'></div>", unsafe_allow_html=True)
+        if st.button("⚡ Inject Telemetry Beacon Packet", use_container_width=True):
+            step_simulation()
+            st.success(f"Streamed coordinate packet for {t['callsign']}!")
             st.rerun()
 
 
 # =========================================================
-# TAB 2: 🗓️ Airspace Slots & Concurrency
+# VIEW 3: ✈️ Fleet Management (Polymorphic Drones)
 # =========================================================
-with tabs[1]:
-    st.markdown("### 🗓️ 4D Airspace Sector Reservation & Concurrency Engine")
-    st.caption("Discrete 30-minute reservation windows protected by pessimistic row-level locking (`SELECT ... FOR UPDATE`).")
-
-    session = SessionLocal()
+elif "Fleet Management" in nav_selection:
+    db = SessionLocal()
     try:
-        sectors = session.query(AirspaceSector).all()
-        sector_options = {f"{s.sector_name} (Alt: {s.floor_altitude_m}m - {s.ceiling_altitude_m}m)": s.sector_id for s in sectors}
+        all_d = db.query(Drone).all()
         
-        col_sec_sel, col_stats = st.columns([2, 1])
-        with col_sec_sel:
-            selected_sec_label = st.selectbox("Choose Airspace Sector", list(sector_options.keys()))
-            selected_sec_id = sector_options[selected_sec_label]
+        # 4 Status Counters matching React
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            st.markdown(f"<div class='utm-stat-card'><div class='utm-stat-label'>Total Fleet</div><div class='utm-stat-val' style='color:#ffffff;'>{len(all_d)}</div></div>", unsafe_allow_html=True)
+        with c2:
+            st.markdown(f"<div class='utm-stat-card'><div class='utm-stat-label'>Idle Status</div><div class='utm-stat-val' style='color:#10b981;'>{sum(1 for d in all_d if d.status == 'IDLE')}</div></div>", unsafe_allow_html=True)
+        with c3:
+            st.markdown(f"<div class='utm-stat-card'><div class='utm-stat-label'>In Flight</div><div class='utm-stat-val' style='color:#0ea5e9;'>{sum(1 for d in all_d if d.status == 'IN_FLIGHT')}</div></div>", unsafe_allow_html=True)
+        with c4:
+            st.markdown(f"<div class='utm-stat-card'><div class='utm-stat-label'>Maintenance</div><div class='utm-stat-val' style='color:#f59e0b;'>{sum(1 for d in all_d if d.status == 'MAINTENANCE')}</div></div>", unsafe_allow_html=True)
 
-        slots = session.query(TimeSlot).filter(TimeSlot.sector_id == selected_sec_id).order_by(TimeSlot.start_time).limit(16).all()
-        
-        with col_stats:
-            booked_count = sum(1 for s in slots if s.is_booked)
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-title">Sector Slot Occupancy</div>
-                <div class="metric-val">{booked_count} / {len(slots)} Booked</div>
-            </div>
-            """, unsafe_allow_html=True)
+        st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+        st.markdown("#### 🛸 Registered UAV Inventory (Polymorphic Models)")
 
-        st.markdown("#### Available & Booked 30-Minute Windows")
-        slot_records = []
-        for s in slots:
-            res = session.query(Reservation).filter(Reservation.slot_id == s.slot_id).first()
-            prio = res.priority if res else "-"
-            drone_str = f"Drone #{res.drone_id}" if res else "-"
-            slot_records.append({
-                "Slot ID": s.slot_id,
-                "Start Window": s.start_time.strftime("%Y-%m-%d %H:%M UTC"),
-                "End Window": s.end_time.strftime("%H:%M UTC"),
-                "Status": "RESERVED" if s.is_booked else "AVAILABLE",
-                "Priority": prio,
-                "Assigned Aircraft": drone_str
-            })
-        st.dataframe(pd.DataFrame(slot_records), use_container_width=True, hide_index=True)
-
-        st.markdown("---")
-        st.markdown("#### 🔒 Reserve a Flight Corridor (Pessimistic Locking)")
-
-        col_book1, col_book2, col_book3 = st.columns(3)
-        available_slots = [s for s in slots if not s.is_booked]
-        slot_map = {f"Slot #{s.slot_id} ({s.start_time.strftime('%H:%M')} - {s.end_time.strftime('%H:%M')})": s.slot_id for s in available_slots}
-        
-        drones = session.query(Drone).all()
-        drone_map = {f"#{d.drone_id} {d.model_name} [{d.drone_type}]": d.drone_id for d in drones}
-
-        with col_book1:
-            chosen_slot = st.selectbox("Select Available Window", list(slot_map.keys()) if slot_map else ["None Available"])
-        with col_book2:
-            chosen_drone = st.selectbox("Assign Drone", list(drone_map.keys()))
-        with col_book3:
-            prio_choice = st.selectbox("Reservation Priority", ["STANDARD", "CRITICAL (Emergency Medical)"])
-
-        if st.button("🚀 Confirm Airspace Reservation", use_container_width=True, disabled=not bool(slot_map)):
-            target_slot_id = slot_map[chosen_slot]
-            target_drone_id = drone_map[chosen_drone]
+        for d in all_d:
+            badge_color = "#38bdf8" if d.drone_type == "QUADCOPTER" else ("#f59e0b" if d.drone_type == "FIXED_WING" else "#f87171")
+            status_color = "#34d399" if d.status == "IDLE" else ("#38bdf8" if d.status == "IN_FLIGHT" else "#fbbf24")
             
-            # Demonstrate Row-Level Lock
-            target_slot = session.query(TimeSlot).filter(TimeSlot.slot_id == target_slot_id).first()
-            if target_slot.is_booked:
-                st.error("HTTP 409 Conflict: Slot was locked and acquired by a concurrent transaction!")
-            else:
-                target_slot.is_booked = True
-                new_res = Reservation(
-                    slot_id=target_slot_id,
-                    drone_id=target_drone_id,
-                    operator_id=current_actor_id,
-                    priority="CRITICAL" if "CRITICAL" in prio_choice else "STANDARD",
-                    status="CONFIRMED"
-                )
-                session.add(new_res)
-                # Audit Log entry
-                session.add(AuditLog(
-                    actor_id=current_actor_id,
-                    actor_license=current_license,
-                    action="RESERVE_SLOT",
-                    entity="TIME_SLOT",
-                    entity_id=target_slot_id,
-                    details=f"Booked slot #{target_slot_id} with {prio_choice} priority"
-                ))
-                session.commit()
-                st.success(f"Airspace corridor locked & confirmed for Slot #{target_slot_id}!")
-                st.rerun()
-
-        # Emergency Preemption Section
-        if current_role == "REGULATOR":
-            st.markdown("---")
-            st.markdown("#### 🚨 Civil Aviation Regulator: Emergency Flight Preemption")
-            st.caption("Elevates critical organ/medical transports by displacing conflicting standard reservations with instantaneous audit logging.")
-            
-            booked_slots = [s for s in slots if s.is_booked]
-            booked_slot_map = {f"Slot #{s.slot_id} ({s.start_time.strftime('%H:%M')} - {s.end_time.strftime('%H:%M')})": s.slot_id for s in booked_slots}
-            
-            if booked_slot_map:
-                col_p1, col_p2 = st.columns([2, 1])
-                with col_p1:
-                    preempt_slot_label = st.selectbox("Select Conflicting Slot to Preempt", list(booked_slot_map.keys()))
-                with col_p2:
-                    st.write("")
-                    st.write("")
-                    if st.button("⚠️ Force Emergency Preemption", use_container_width=True):
-                        preempt_id = booked_slot_map[preempt_slot_label]
-                        res_to_preempt = session.query(Reservation).filter(Reservation.slot_id == preempt_id).first()
-                        if res_to_preempt:
-                            res_to_preempt.priority = "CRITICAL"
-                            res_to_preempt.status = "PREEMPTED_FOR_EMERGENCY"
-                            session.add(AuditLog(
-                                actor_id=current_actor_id,
-                                actor_license=current_license,
-                                action="EMERGENCY_PREEMPT",
-                                entity="RESERVATION",
-                                entity_id=res_to_preempt.reservation_id,
-                                details=f"Regulator displaced standard flight on Slot #{preempt_id} for critical emergency medical corridor."
-                            ))
-                            session.commit()
-                            st.warning(f"Slot #{preempt_id} preempted! Conflicting standard aircraft displaced.")
-                            st.rerun()
-            else:
-                st.info("No active booked slots to preempt in this sector.")
-    finally:
-        session.close()
-
-
-# =========================================================
-# TAB 3: 🚁 Polymorphic Fleet Management
-# =========================================================
-with tabs[2]:
-    st.markdown("### 🚁 Polymorphic Fleet Architecture")
-    st.caption("SQLAlchemy joined-table polymorphic modeling for multi-rotor, fixed-wing, and emergency medical aircraft.")
-
-    session = SessionLocal()
-    try:
-        all_drones = session.query(Drone).all()
-        
-        drone_table = []
-        for d in all_drones:
-            type_specs = ""
+            specs = ""
             if d.drone_type == "QUADCOPTER":
-                type_specs = f"{d.rotor_count or 4} Rotors | Max Payload: {d.max_payload_kg or 5.0}kg"
+                specs = f"Rotors: {d.rotor_count or 4} · Max Payload: {d.max_payload_kg or 4.5}kg"
             elif d.drone_type == "FIXED_WING":
-                type_specs = f"Wingspan: {d.wingspan_m or 2.5}m | Glide: {d.glide_ratio or 12}:1"
-            elif d.drone_type == "EMERGENCY_MEDICAL":
-                type_specs = f"Kit: {d.medical_kit_type or 'First Responder'} | Level: {d.priority_level or 'CRITICAL'}"
+                specs = f"Wingspan: {d.wingspan_m or 3.2}m · Glide Ratio: {d.glide_ratio or 15}:1"
+            else:
+                specs = f"Medical Kit: {d.medical_kit_type or 'Organ Transport'} · Priority: {d.priority_level or 'CRITICAL'}"
 
-            drone_table.append({
-                "Drone ID": d.drone_id,
-                "Model Name": d.model_name,
-                "Subtype": d.drone_type,
-                "Max Altitude": f"{d.max_altitude_m}m",
-                "Battery Capacity": f"{d.battery_capacity_pct}%",
-                "Operational Status": d.status,
-                "Polymorphic Technical Specs": type_specs
-            })
-
-        st.dataframe(pd.DataFrame(drone_table), use_container_width=True, hide_index=True)
+            card_html = f"""
+            <div class="drone-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="font-weight: 800; font-size: 1.05rem; color: #ffffff;">{d.model_name}</span>
+                        <span style="background: rgba(14, 165, 233, 0.1); color: {badge_color}; border: 1px solid {badge_color}40; padding: 2px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 700; margin-left: 8px;">{d.drone_type}</span>
+                    </div>
+                    <span style="color: {status_color}; font-weight: 700; font-size: 0.8rem; font-family: ui-monospace;">● {d.status}</span>
+                </div>
+                <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 6px;">
+                    {specs}
+                </div>
+                <div style="display: flex; gap: 20px; font-size: 0.75rem; color: #64748b; margin-top: 8px;">
+                    <span>Max Altitude: <strong style="color: #cbd5e1;">{d.max_altitude_m}m</strong></span>
+                    <span>Battery Capacity: <strong style="color: #cbd5e1;">{d.battery_capacity_pct}%</strong></span>
+                    <span>Assigned ID: <strong style="color: #cbd5e1;">#{d.drone_id}</strong></span>
+                </div>
+            </div>
+            """
+            st.markdown(card_html, unsafe_allow_html=True)
 
         st.markdown("---")
-        st.markdown("#### ➕ Register New Aircraft")
+        st.markdown("#### ➕ Register Polymorphic Aircraft")
+        with st.form("add_drone_modal"):
+            m_col1, m_col2 = st.columns(2)
+            with m_col1:
+                name_in = st.text_input("Aircraft Name / Model", "Skydio X10 Enterprise")
+                type_in = st.selectbox("Drone Subtype", ["QUADCOPTER", "FIXED_WING", "EMERGENCY_MEDICAL"])
+            with m_col2:
+                alt_in = st.number_input("Ceiling Limit (m)", 20.0, 500.0, 120.0)
+                bat_in = st.number_input("Battery (%)", 10.0, 100.0, 100.0)
 
-        with st.form("register_drone_form"):
-            col_d1, col_d2, col_d3 = st.columns(3)
-            with col_d1:
-                new_model = st.text_input("Aircraft Model Name", "Skydio X10 Enterprise")
-                new_type = st.selectbox("Drone Subtype", ["QUADCOPTER", "FIXED_WING", "EMERGENCY_MEDICAL"])
-            with col_d2:
-                new_max_alt = st.number_input("Max Altitude Ceiling (m)", 20.0, 500.0, 120.0, 10.0)
-                new_battery = st.number_input("Battery Starting Level (%)", 10.0, 100.0, 100.0, 5.0)
-            with col_d3:
-                new_status = st.selectbox("Operational Status", ["IDLE", "IN_FLIGHT", "MAINTENANCE"])
-
-            st.markdown("##### Subtype-Specific Polymorphic Configuration")
-            col_sub1, col_sub2 = st.columns(2)
-            if new_type == "QUADCOPTER":
-                with col_sub1:
-                    rotors = st.number_input("Number of Rotors", 4, 12, 4)
-                with col_sub2:
-                    payload = st.number_input("Max Payload Capacity (kg)", 0.5, 50.0, 4.5)
-                wingspan, glide, kit, prio = None, None, None, None
-            elif new_type == "FIXED_WING":
-                with col_sub1:
-                    wingspan = st.number_input("Wingspan (meters)", 1.0, 15.0, 3.2)
-                with col_sub2:
-                    glide = st.number_input("Glide Ratio (X:1)", 5.0, 30.0, 16.0)
-                rotors, payload, kit, prio = None, None, None, None
+            if type_in == "QUADCOPTER":
+                rot = st.number_input("Rotor Count", 4, 12, 4)
+                pay = st.number_input("Max Payload (kg)", 0.5, 50.0, 5.0)
+                w, g, kit, prio = None, None, None, None
+            elif type_in == "FIXED_WING":
+                w = st.number_input("Wingspan (m)", 1.0, 15.0, 3.2)
+                g = st.number_input("Glide Ratio (X:1)", 5.0, 30.0, 15.0)
+                rot, pay, kit, prio = None, None, None, None
             else:
-                with col_sub1:
-                    kit = st.selectbox("Medical Kit Specification", ["Organ & Blood Cold Chain", "AED Defibrillator", "Anti-Venom / Trauma Kit"])
-                with col_sub2:
-                    prio = st.selectbox("Default Emergency Priority", ["CRITICAL", "HIGH"])
-                rotors, payload, wingspan, glide = None, None, None, None
+                kit = st.selectbox("Medical Kit", ["Organ & Blood Cold Chain", "AED Defibrillator", "Trauma Kit"])
+                prio = st.selectbox("Priority Level", ["CRITICAL", "HIGH"])
+                rot, pay, w, g = None, None, None, None
 
-            submitted = st.form_submit_button("✅ Register Drone into Database", use_container_width=True)
-            if submitted:
-                new_drone = Drone(
-                    operator_id=current_actor_id,
-                    drone_type=new_type,
-                    model_name=new_model,
-                    max_altitude_m=new_max_alt,
-                    battery_capacity_pct=new_battery,
-                    status=new_status,
-                    rotor_count=rotors,
-                    max_payload_kg=payload,
-                    wingspan_m=wingspan,
-                    glide_ratio=glide,
+            if st.form_submit_button("✅ Register Drone into Database", use_container_width=True):
+                new_d = Drone(
+                    operator_id=curr_actor_id,
+                    drone_type=type_in,
+                    model_name=name_in,
+                    max_altitude_m=alt_in,
+                    battery_capacity_pct=bat_in,
+                    status="IDLE",
+                    rotor_count=rot,
+                    max_payload_kg=pay,
+                    wingspan_m=w,
+                    glide_ratio=g,
                     medical_kit_type=kit,
                     priority_level=prio
                 )
-                session.add(new_drone)
-                session.flush()
-                session.add(AuditLog(
-                    actor_id=current_actor_id,
-                    actor_license=current_license,
-                    action="REGISTER_DRONE",
-                    entity="DRONE",
-                    entity_id=new_drone.drone_id,
-                    details=f"Registered polymorphic aircraft {new_model} ({new_type})"
-                ))
-                session.commit()
-                st.success(f"Aircraft {new_model} registered successfully!")
+                db.add(new_d)
+                db.flush()
+                db.add(AuditLog(actor_id=curr_actor_id, actor_license=curr_license, action="REGISTER_DRONE", entity="DRONE", entity_id=new_d.drone_id, details=f"Registered {name_in}"))
+                db.commit()
+                st.success(f"{name_in} added successfully!")
                 st.rerun()
     finally:
-        session.close()
+        db.close()
 
 
 # =========================================================
-# TAB 4: ⚖️ Regulator Console & Audit Trail
+# VIEW 4: 📅 Airspace Reservation
 # =========================================================
-with tabs[3]:
-    st.markdown("### ⚖️ Civil Aviation Regulator Console & Security Audit Trail")
-    st.caption("Immutable append-only audit trail and commercial operator licensing governance.")
-
-    session = SessionLocal()
+elif "Airspace Reservation" in nav_selection:
+    db = SessionLocal()
     try:
-        # Operator Licensing Governance
-        st.markdown("#### 🏢 Operator Governance & License Status")
-        ops = session.query(Operator).all()
+        sectors = db.query(AirspaceSector).all()
+        sec_dict = {f"{s.sector_name} (Alt: {s.floor_altitude_m}m - {s.ceiling_altitude_m}m)": s.sector_id for s in sectors}
         
+        sel_label = st.selectbox("Select Airspace Sector", list(sec_dict.keys()))
+        sel_id = sec_dict[sel_label]
+
+        slots = db.query(TimeSlot).filter(TimeSlot.sector_id == sel_id).order_by(TimeSlot.start_time).limit(12).all()
+        
+        st.markdown("#### 30-Minute Reservation Schedule (Row-Lock Protected)")
+        
+        col_grid = st.columns(3)
+        for idx, s in enumerate(slots):
+            with col_grid[idx % 3]:
+                res = db.query(Reservation).filter(Reservation.slot_id == s.slot_id).first()
+                stat_border = "#ef4444" if (res and res.priority == "CRITICAL") else ("#38bdf8" if s.is_booked else "#10b981")
+                stat_text = "CONFIRMED" if s.is_booked else "AVAILABLE"
+                
+                card_s = f"""
+                <div style="background: #15203b; border-left: 4px solid {stat_border}; border-top: 1px solid #1e293b; border-right: 1px solid #1e293b; border-bottom: 1px solid #1e293b; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #f8fafc;">Slot #{s.slot_id}</span>
+                        <span style="font-size: 0.65rem; font-weight: 800; color: {stat_border}; font-family: ui-monospace;">{stat_text}</span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #94a3b8; margin: 4px 0;">{s.start_time.strftime('%H:%M')} - {s.end_time.strftime('%H:%M UTC')}</div>
+                    <div style="font-size: 0.7rem; color: #64748b;">Aircraft: {f"Drone #{res.drone_id}" if res else "None"}</div>
+                </div>
+                """
+                st.markdown(card_s, unsafe_allow_html=True)
+
+        st.markdown("---")
+        st.markdown("#### 🔒 Reserve Flight Corridor (`SELECT ... FOR UPDATE`)")
+        
+        avail_slots = [s for s in slots if not s.is_booked]
+        slot_picks = {f"Slot #{s.slot_id} ({s.start_time.strftime('%H:%M')} - {s.end_time.strftime('%H:%M')})": s.slot_id for s in avail_slots}
+        drones = db.query(Drone).all()
+        d_picks = {f"#{d.drone_id} {d.model_name}": d.drone_id for d in drones}
+
+        cb1, cb2, cb3 = st.columns(3)
+        with cb1:
+            chosen_slot_str = st.selectbox("Available Window", list(slot_picks.keys()) if slot_picks else ["No Slots"])
+        with cb2:
+            chosen_d_str = st.selectbox("Assign Aircraft", list(d_picks.keys()))
+        with cb3:
+            chosen_prio = st.selectbox("Priority Level", ["STANDARD", "CRITICAL (Emergency Medical)"])
+
+        if st.button("🚀 Confirm Corridor Reservation", use_container_width=True, disabled=not bool(slot_picks)):
+            s_id = slot_picks[chosen_slot_str]
+            d_id = d_picks[chosen_d_str]
+            target_s = db.query(TimeSlot).filter(TimeSlot.slot_id == s_id).first()
+            if target_s.is_booked:
+                st.error("HTTP 409 Conflict: Slot acquired by concurrent transaction!")
+            else:
+                target_s.is_booked = True
+                new_r = Reservation(slot_id=s_id, drone_id=d_id, operator_id=curr_actor_id, priority="CRITICAL" if "CRITICAL" in chosen_prio else "STANDARD", status="CONFIRMED")
+                db.add(new_r)
+                db.add(AuditLog(actor_id=curr_actor_id, actor_license=curr_license, action="RESERVE_SLOT", entity="TIME_SLOT", entity_id=s_id, details=f"Reserved Slot #{s_id}"))
+                db.commit()
+                st.success(f"Slot #{s_id} locked and confirmed!")
+                st.rerun()
+
+        # Preemption for Regulators
+        if curr_role == "REGULATOR":
+            st.markdown("---")
+            st.markdown("#### 🚨 Civil Aviation Regulator: Emergency Flight Preemption")
+            b_slots = [s for s in slots if s.is_booked]
+            b_map = {f"Slot #{s.slot_id}": s.slot_id for s in b_slots}
+            if b_map:
+                p_col1, p_col2 = st.columns([2, 1])
+                with p_col1:
+                    pre_choice = st.selectbox("Select Conflicting Slot to Preempt", list(b_map.keys()))
+                with p_col2:
+                    st.write("")
+                    st.write("")
+                    if st.button("⚠️ Force Emergency Preemption", use_container_width=True):
+                        pre_id = b_map[pre_choice]
+                        res_p = db.query(Reservation).filter(Reservation.slot_id == pre_id).first()
+                        if res_p:
+                            res_p.priority = "CRITICAL"
+                            res_p.status = "PREEMPTED_FOR_EMERGENCY"
+                            db.add(AuditLog(actor_id=curr_actor_id, actor_license=curr_license, action="EMERGENCY_PREEMPT", entity="RESERVATION", entity_id=res_p.reservation_id, details=f"Preempted slot #{pre_id} for emergency flight"))
+                            db.commit()
+                            st.warning(f"Slot #{pre_id} preempted! Standard flight displaced.")
+                            st.rerun()
+    finally:
+        db.close()
+
+
+# =========================================================
+# VIEW 5: 🛡️ Regulator Console
+# =========================================================
+elif "Regulator Console" in nav_selection:
+    db = SessionLocal()
+    try:
+        st.markdown("#### 🏢 Operator Governance & Licensing")
+        ops = db.query(Operator).all()
         for op in ops:
             c1, c2, c3, c4 = st.columns([2, 2, 2, 2])
             with c1:
@@ -864,53 +971,34 @@ with tabs[3]:
             with c2:
                 st.write(f"License: `{op.license_no}`")
             with c3:
-                status_color = "#f87171" if op.is_suspended else "#34d399"
-                status_text = "SUSPENDED" if op.is_suspended else "ACTIVE"
-                st.markdown(f"<span style='color: {status_color}; font-weight: bold;'>● {status_text}</span>", unsafe_allow_html=True)
+                sc = "#f87171" if op.is_suspended else "#34d399"
+                st.markdown(f"<span style='color: {sc}; font-weight: bold;'>● {'SUSPENDED' if op.is_suspended else 'ACTIVE'}</span>", unsafe_allow_html=True)
             with c4:
-                if current_role == "REGULATOR" and op.role != "REGULATOR":
-                    toggle_btn_label = "Reinstate License" if op.is_suspended else "Suspend License"
-                    if st.button(toggle_btn_label, key=f"op_{op.operator_id}"):
+                if curr_role == "REGULATOR" and op.role != "REGULATOR":
+                    btn_t = "Reinstate" if op.is_suspended else "Suspend"
+                    if st.button(btn_t, key=f"btn_op_{op.operator_id}"):
                         op.is_suspended = not op.is_suspended
-                        session.add(AuditLog(
-                            actor_id=current_actor_id,
-                            actor_license=current_license,
-                            action="SUSPEND_OPERATOR" if op.is_suspended else "REINSTATE_OPERATOR",
-                            entity="OPERATOR",
-                            entity_id=op.operator_id,
-                            details=f"Regulator toggled license status to {op.is_suspended}"
-                        ))
-                        session.commit()
+                        db.add(AuditLog(actor_id=curr_actor_id, actor_license=curr_license, action="SUSPEND_OPERATOR" if op.is_suspended else "REINSTATE_OPERATOR", entity="OPERATOR", entity_id=op.operator_id, details=f"License toggled"))
+                        db.commit()
                         st.rerun()
                 else:
                     st.write("—")
 
         st.markdown("---")
         st.markdown("#### 📋 Immutable System Audit Trail")
-        
-        audit_records = session.query(AuditLog).order_by(AuditLog.id.desc()).limit(50).all()
-        audit_data = [{
-            "ID": a.id,
-            "Timestamp (UTC)": a.created_at.strftime("%Y-%m-%d %H:%M:%S") if a.created_at else "-",
-            "Actor License": a.actor_license or f"User #{a.actor_id}",
-            "Action Type": a.action,
-            "Target Entity": a.entity,
-            "Entity ID": a.entity_id or "-",
-            "Security Event Details": a.details
-        } for a in audit_records]
+        logs = db.query(AuditLog).order_by(AuditLog.id.desc()).limit(30).all()
+        log_rows = [{
+            "ID": l.id,
+            "Timestamp (UTC)": l.created_at.strftime("%Y-%m-%d %H:%M:%S") if l.created_at else "-",
+            "Actor License": l.actor_license or f"#{l.actor_id}",
+            "Action": l.action,
+            "Entity": l.entity,
+            "Details": l.details
+        } for l in logs]
+        df_l = pd.DataFrame(log_rows)
+        st.dataframe(df_l, use_container_width=True, hide_index=True)
 
-        df_audit = pd.DataFrame(audit_data)
-        st.dataframe(df_audit, use_container_width=True, hide_index=True)
-
-        if not df_audit.empty:
-            csv_data = df_audit.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="📥 Export Compliance Audit Log (CSV)",
-                data=csv_data,
-                file_name="utm_aeroshield_audit_trail.csv",
-                mime="text/csv",
-                use_container_width=True
-            )
+        if not df_l.empty:
+            st.download_button("📥 Export Compliance Audit Log (CSV)", df_l.to_csv(index=False).encode('utf-8'), "utm_audit_trail.csv", "text/csv", use_container_width=True)
     finally:
-        session.close()
-
+        db.close()

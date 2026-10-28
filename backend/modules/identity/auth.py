@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
@@ -23,8 +23,6 @@ JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-key-change-me")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
 
-# Passlib bcrypt context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # HTTP Bearer security scheme
 security = HTTPBearer(auto_error=False)
@@ -59,12 +57,18 @@ def is_operator_suspended(db: Session, operator_id: int) -> bool:
 
 def hash_password(password: str) -> str:
     """Hash plaintext password using bcrypt."""
-    return pwd_context.hash(password)
+    password_bytes = password.encode("utf-8")[:72]
+    return bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify plaintext password against bcrypt hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        password_bytes = plain_password.encode("utf-8")[:72]
+        hash_bytes = hashed_password.encode("utf-8")
+        return bcrypt.checkpw(password_bytes, hash_bytes)
+    except Exception:
+        return False
 
 
 def create_access_token(

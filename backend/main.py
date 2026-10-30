@@ -72,6 +72,33 @@ async def lifespan(app: FastAPI):
                 s2 = AirspaceSector(sector_name="SECTOR-BRAVO", min_lat=13.10, max_lat=13.35, min_lon=77.50, max_lon=77.75, floor_altitude_m=120, ceiling_altitude_m=250)
                 db.add_all([s1, s2])
                 db.commit()
+
+            # 4. Auto-seed rolling time slots if none exist for today
+            try:
+                from modules.reservations.models import TimeSlot
+                from datetime import datetime, timezone, timedelta
+                now_utc = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0, tzinfo=None)
+                today_slots = db.query(TimeSlot).filter(TimeSlot.start_time >= now_utc).count()
+                if today_slots < 48:
+                    all_sectors = db.query(AirspaceSector).all()
+                    base_day = now_utc.replace(hour=0)
+                    for s in all_sectors:
+                        for day_offset in range(3):
+                            day_start = base_day + timedelta(days=day_offset)
+                            current = day_start
+                            while current < day_start + timedelta(days=1):
+                                end = current + timedelta(minutes=30)
+                                exists = db.query(TimeSlot).filter(
+                                    TimeSlot.sector_id == s.sector_id,
+                                    TimeSlot.start_time == current
+                                ).first()
+                                if not exists:
+                                    slot = TimeSlot(sector_id=s.sector_id, start_time=current, end_time=end, is_booked=False)
+                                    db.add(slot)
+                                current = end
+                    db.commit()
+            except Exception as slot_err:
+                print(f'[Lifespan Slot Seed] Info: {slot_err}')
         finally:
             db.close()
     except Exception as e:

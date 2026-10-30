@@ -3,8 +3,66 @@ import { useAuth } from "shared";
 import { RadarMap } from "./components/RadarMap";
 import { TelemetryHUD } from "./components/TelemetryHUD";
 import { AlertsBanner } from "./components/AlertsBanner";
-import type { TelemetryPoint, SectorBoundary, TelemetryAlert } from "./types";
-import { Radar, Play, Square, Wifi, WifiOff } from "lucide-react";
+import { soundFX } from "./utils/soundFX";
+import type { TelemetryPoint, SectorBoundary, RestrictedZone, GroundStation, TelemetryAlert } from "./types";
+import { Radar, Play, Square, Volume2, VolumeX } from "lucide-react";
+
+// Pre-defined High-Security Restricted Military No-Fly Zones
+const DEFAULT_RESTRICTED_ZONES: RestrictedZone[] = [
+  {
+    zone_id: "RZ-RED-01",
+    zone_name: "Yelahanka Air Force Base Airspace",
+    code: "RESTRICTED-AFB-01",
+    description: "Strict military air defense corridor. Immediate interception protocol active.",
+    min_lat: 13.1200,
+    max_lat: 13.1900,
+    min_lon: 77.5700,
+    max_lon: 77.6400,
+    max_altitude_m: 500,
+  },
+  {
+    zone_id: "RZ-RED-02",
+    zone_name: "HAL Defense Aerodrome & Radar Array",
+    code: "DEFENSE-RADAR-02",
+    description: "Critical national defense radar array. Electronic warfare zone.",
+    min_lat: 12.9300,
+    max_lat: 12.9800,
+    min_lon: 77.6400,
+    max_lon: 77.7100,
+    max_altitude_m: 400,
+  },
+];
+
+// Drone Ground Charging & Recovery Stations
+const GROUND_STATIONS: GroundStation[] = [
+  {
+    station_id: "GS-NORTH",
+    station_name: "Hebbal Hub Alpha",
+    latitude: 13.0350,
+    longitude: 77.5950,
+  },
+  {
+    station_id: "GS-SOUTH",
+    station_name: "Electronic City Bravo",
+    latitude: 12.8450,
+    longitude: 77.6650,
+  },
+];
+
+// Helper to compute Euclidean distance in KM roughly
+function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // Earth radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c * 10) / 10;
+}
 
 export const TelemetryPage: React.FC = () => {
   const { token } = useAuth();
@@ -12,8 +70,10 @@ export const TelemetryPage: React.FC = () => {
   const [sectors, setSectors] = useState<SectorBoundary[]>([]);
   const [selectedDroneId, setSelectedDroneId] = useState<string | null>(null);
   const [alerts, setAlerts] = useState<TelemetryAlert[]>([]);
-  const [wsConnected, setWsConnected] = useState<boolean>(false);
+  const [, setWsConnected] = useState<boolean>(false);
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [hasActiveIntrusion, setHasActiveIntrusion] = useState<boolean>(false);
 
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -63,7 +123,7 @@ export const TelemetryPage: React.FC = () => {
       .catch((err) => console.error("Initial telemetry fetch:", err));
   }, [token]);
 
-  // Handle incoming telemetry packet
+  // Handle incoming telemetry packet and analyze threats
   const handleIncomingTelemetry = useCallback((data: any) => {
     const droneId = String(data.drone_id);
     const lat = Number(data.latitude);
@@ -74,11 +134,35 @@ export const TelemetryPage: React.FC = () => {
     const battery = Number(data.battery_pct);
     const ts = data.timestamp || new Date().toISOString();
 
+    // Check if drone has entered any restricted military no-fly zone
+    let inRestrictedZone = false;
+    let breachedZone: RestrictedZone | null = null;
+    for (const rz of DEFAULT_RESTRICTED_ZONES) {
+      if (
+        lat >= rz.min_lat &&
+        lat <= rz.max_lat &&
+        lon >= rz.min_lon &&
+        lon <= rz.max_lon &&
+        alt <= rz.max_altitude_m
+      ) {
+        inRestrictedZone = true;
+        breachedZone = rz;
+        break;
+      }
+    }
+
+    // Distance to nearest ground station
+    let minStationDist = 999;
+    for (const gs of GROUND_STATIONS) {
+      const d = calculateDistanceKm(lat, lon, gs.latitude, gs.longitude);
+      if (d < minStationDist) minStationDist = d;
+    }
+
     setTelemetries((prev) => {
       const next = new Map(prev);
       const existing = next.get(droneId);
       const prevTrail = existing?.trail || [];
-      const newTrail = [...prevTrail, { lat, lon }].slice(-25);
+      const newTrail = [...prevTrail, { lat, lon }].slice(-30);
 
       next.set(droneId, {
         drone_id: droneId,
@@ -91,12 +175,56 @@ export const TelemetryPage: React.FC = () => {
         timestamp: ts,
         trail: newTrail,
         status: "ACTIVE",
+        distance_to_station_km: minStationDist,
+        in_restricted_zone: inRestrictedZone,
       });
       return next;
     });
 
-    // Check for alerts
     const newAlerts: TelemetryAlert[] = [];
+
+    // 🚨 1. WAR/RED ALERT: Restricted Zone Intrusion
+    if (inRestrictedZone && breachedZone) {
+      setHasActiveIntrusion(true);
+      soundFX.startWarAlarm();
+      soundFX.playMissileLock();
+
+      newAlerts.push({
+        id: `intrude-${droneId}-${Date.now()}`,
+        drone_id: droneId,
+        type: "RESTRICTED_ZONE_INTRUSION",
+        message: `🚨 WAR EMERGENCY: UAV-${droneId} BREACHED ${breachedZone.code} (${breachedZone.zone_name})! AIR DEFENSE ENGAGED!`,
+        timestamp: ts,
+        severity: "CRITICAL",
+        details: { zone_name: breachedZone.zone_name },
+      });
+    }
+
+    // ⚡ 2. LOW BATTERY & GROUND STATION FAR
+    if (battery <= 25 && minStationDist >= 12.0) {
+      soundFX.playBatteryAlert();
+      newAlerts.push({
+        id: `bat-dist-${droneId}-${Date.now()}`,
+        drone_id: droneId,
+        type: "BATTERY_STATION_CRITICAL",
+        message: `⚡ CRITICAL ENERGY THREAT: UAV-${droneId} Battery at ${Math.round(battery)}%, Nearest Charging Station is ${minStationDist}km away! Immediate return or emergency landing required!`,
+        timestamp: ts,
+        severity: "CRITICAL",
+        details: { distance_km: minStationDist, battery_pct: battery },
+      });
+    } else if (battery < 20) {
+      soundFX.playBatteryAlert();
+      newAlerts.push({
+        id: `bat-${droneId}-${Date.now()}`,
+        drone_id: droneId,
+        type: "LOW_BATTERY",
+        message: `UAV-${droneId} battery low (${Math.round(battery)}%)!`,
+        timestamp: ts,
+        severity: "WARNING",
+      });
+    }
+
+    // 3. Altitude Ceiling
     if (alt > 120) {
       newAlerts.push({
         id: `alt-${droneId}-${Date.now()}`,
@@ -108,19 +236,8 @@ export const TelemetryPage: React.FC = () => {
       });
     }
 
-    if (battery < 20) {
-      newAlerts.push({
-        id: `bat-${droneId}-${Date.now()}`,
-        drone_id: droneId,
-        type: "LOW_BATTERY",
-        message: `UAV-${droneId} battery critical (${Math.round(battery)}%)!`,
-        timestamp: ts,
-        severity: "WARNING",
-      });
-    }
-
     if (newAlerts.length > 0) {
-      setAlerts((prev) => [...newAlerts, ...prev].slice(0, 5));
+      setAlerts((prev) => [...newAlerts, ...prev].slice(0, 6));
     }
   }, []);
 
@@ -149,7 +266,6 @@ export const TelemetryPage: React.FC = () => {
 
       ws.onclose = () => {
         setWsConnected(false);
-        // Retry connection in 3 seconds
         reconnectTimeoutRef.current = setTimeout(connectWs, 3000);
       };
 
@@ -163,6 +279,7 @@ export const TelemetryPage: React.FC = () => {
     return () => {
       if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
       if (socketRef.current) socketRef.current.close();
+      soundFX.stopWarAlarm();
     };
   }, [handleIncomingTelemetry]);
 
@@ -171,40 +288,45 @@ export const TelemetryPage: React.FC = () => {
     if (isSimulating) {
       if (simulationIntervalRef.current) clearInterval(simulationIntervalRef.current);
       setIsSimulating(false);
+      setHasActiveIntrusion(false);
+      soundFX.stopWarAlarm();
       return;
     }
 
     setIsSimulating(true);
 
     let step = 0;
-    let simLat1 = 12.9800;
-    let simLon1 = 77.5800;
-    let simHeading1 = 45;
+    // Drone 1: Patrolling toward Yelahanka Air Force Restricted Base
+    let simLat1 = 13.0800;
+    let simLon1 = 77.5600;
+    let simHeading1 = 30;
 
-    let simLat2 = 13.1500;
-    let simLon2 = 77.6500;
-    let simHeading2 = 180;
+    // Drone 2: Flying with depleting battery far from charging station
+    let simLat2 = 13.2500;
+    let simLon2 = 77.7200;
+    let simHeading2 = 210;
+    let simBat2 = 30;
 
     simulationIntervalRef.current = setInterval(async () => {
       step++;
-      // Drone 1 (Fixed-Wing巡航)
-      simLat1 += 0.0012 * Math.cos((simHeading1 * Math.PI) / 180);
-      simLon1 += 0.0012 * Math.sin((simHeading1 * Math.PI) / 180);
-      if (step % 20 === 0) simHeading1 = (simHeading1 + 45) % 360;
 
-      // Drone 2 (Emergency Medical Flight)
-      simLat2 += 0.0015 * Math.cos((simHeading2 * Math.PI) / 180);
-      simLon2 += 0.0015 * Math.sin((simHeading2 * Math.PI) / 180);
-      if (step % 15 === 0) simHeading2 = (simHeading2 + 30) % 360;
+      // Drone 1 heads directly into Restricted Zone RZ-RED-01
+      simLat1 += 0.0016 * Math.cos((simHeading1 * Math.PI) / 180);
+      simLon1 += 0.0016 * Math.sin((simHeading1 * Math.PI) / 180);
+
+      // Drone 2 battery drops and travels further North away from ground stations
+      simLat2 += 0.0012 * Math.cos((simHeading2 * Math.PI) / 180);
+      simLon2 += 0.0012 * Math.sin((simHeading2 * Math.PI) / 180);
+      simBat2 = Math.max(simBat2 - 0.7, 8);
 
       const p1 = {
         drone_id: "1",
         latitude: simLat1,
         longitude: simLon1,
-        altitude_m: 85 + Math.sin(step) * 10,
-        speed_mps: 18.5,
+        altitude_m: 95,
+        speed_mps: 26.5,
         heading: simHeading1,
-        battery_pct: Math.max(98 - step * 0.2, 15),
+        battery_pct: 78,
         timestamp: new Date().toISOString(),
       };
 
@@ -212,35 +334,48 @@ export const TelemetryPage: React.FC = () => {
         drone_id: "2",
         latitude: simLat2,
         longitude: simLon2,
-        altitude_m: 125, // Triggers altitude alert
-        speed_mps: 22.0,
+        altitude_m: 85,
+        speed_mps: 21.0,
         heading: simHeading2,
-        battery_pct: 18, // Triggers low battery alert
+        battery_pct: Math.round(simBat2),
         timestamp: new Date().toISOString(),
       };
 
-      try {
-        await fetch("/api/telemetry", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(p1),
-        });
-        await fetch("/api/telemetry", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(p2),
-        });
-      } catch (err) {
-        console.error("Simulation dispatch:", err);
-      }
-    }, 1200);
+      // Update local telemetry state directly for instantaneous, fluid radar movement
+      handleIncomingTelemetry(p1);
+      handleIncomingTelemetry(p2);
+
+      // Also dispatch to backend to persist and broadcast
+      fetch("/api/telemetry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(p1),
+      }).catch(() => {});
+      fetch("/api/telemetry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(p2),
+      }).catch(() => {});
+    }, 700);
   };
 
-  useEffect(() => {
-    return () => {
-      if (simulationIntervalRef.current) clearInterval(simulationIntervalRef.current);
-    };
-  }, []);
+  const handleDismissAlert = (id: string) => {
+    setAlerts((prev) => {
+      const remaining = prev.filter((a) => a.id !== id);
+      const stillHasIntrusion = remaining.some((a) => a.type === "RESTRICTED_ZONE_INTRUSION");
+      if (!stillHasIntrusion) {
+        setHasActiveIntrusion(false);
+        soundFX.stopWarAlarm();
+      }
+      return remaining;
+    });
+  };
+
+  const toggleMute = () => {
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+    soundFX.setMuted(nextMuted);
+  };
 
   const selectedDrone = selectedDroneId ? telemetries.get(selectedDroneId) ?? null : null;
   const droneArray = Array.from(telemetries.values());
@@ -249,80 +384,90 @@ export const TelemetryPage: React.FC = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-600 to-cyan-400 shadow-glow">
-              <Radar className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white">Live Telemetry & Radar</h1>
-              <p className="text-xs text-slate-400">
-                Real-time 4D radar tracking · WebSocket GPS streaming · Altitude & Geofence detection
-              </p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className={`flex h-11 w-11 items-center justify-center rounded-xl shadow-glow ${
+            hasActiveIntrusion ? "bg-red-600 animate-bounce" : "bg-gradient-to-tr from-brand-600 to-cyan-400"
+          }`}>
+            <Radar className="h-6 w-6 text-white animate-spin [animation-duration:8s]" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+              Live Tactical Telemetry & Radar Defense
+              {hasActiveIntrusion && (
+                <span className="rounded-md bg-red-600 px-2 py-0.5 text-xs font-black text-white animate-pulse">
+                  RED ALERT
+                </span>
+              )}
+            </h1>
+            <p className="text-xs text-slate-400">
+              Air Defense Monitoring · No-Fly Threat Detection · Audible Tactical Klaxons · Energy Proximity
+            </p>
           </div>
         </div>
 
-        {/* Tactical Controls & Status */}
+        {/* Action Controls & Simulator */}
         <div className="flex items-center gap-3">
-          {/* Connection Status Badge */}
-          <div className="flex items-center gap-2 rounded-xl border border-utm-border bg-utm-card px-3 py-2 text-xs">
-            {wsConnected ? (
-              <>
-                <Wifi className="h-4 w-4 text-emerald-400" />
-                <span className="font-mono text-emerald-400">WS Live</span>
-              </>
-            ) : (
-              <>
-                <WifiOff className="h-4 w-4 text-amber-400" />
-                <span className="font-mono text-amber-400">Reconnecting...</span>
-              </>
-            )}
-          </div>
+          {/* Audio Alarm Toggle */}
+          <button
+            onClick={toggleMute}
+            className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-all ${
+              isMuted
+                ? "border-slate-700 bg-utm-card text-slate-400 hover:text-white"
+                : "border-red-500/50 bg-red-500/20 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.3)] animate-pulse"
+            }`}
+          >
+            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4 text-red-400" />}
+            <span>{isMuted ? "Audio Muted" : "Audio Armed"}</span>
+          </button>
 
-          {/* Simulation Toggle Button */}
+          {/* Simulate Live Flight Telemetry & Threat Incursion */}
           <button
             onClick={toggleSimulation}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold shadow-glow transition ${
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all shadow-lg ${
               isSimulating
-                ? "border border-red-500/40 bg-red-500/20 text-red-300 hover:bg-red-500/30"
-                : "bg-gradient-to-r from-brand-600 to-cyan-500 text-white hover:from-brand-500 hover:to-cyan-400"
+                ? "bg-red-600 hover:bg-red-700 text-white shadow-red-500/30 animate-pulse"
+                : "bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-500 hover:to-cyan-400 text-white shadow-brand-500/20"
             }`}
           >
             {isSimulating ? (
               <>
-                <Square className="h-3.5 w-3.5 fill-current" />
-                Stop Simulation
+                <Square className="h-4 w-4 fill-white" />
+                <span>Stop Live Simulation</span>
               </>
             ) : (
               <>
-                <Play className="h-3.5 w-3.5 fill-current" />
-                Simulate Flight Telemetry
+                <Play className="h-4 w-4 fill-white" />
+                <span>Simulate Threat & Incursion Demo</span>
               </>
             )}
           </button>
         </div>
       </div>
 
-      {/* Safety Alerts Banner */}
+      {/* Threat and Alert Banners with Klaxons */}
       <AlertsBanner
         alerts={alerts}
-        onDismiss={(id) => setAlerts((prev) => prev.filter((a) => a.id !== id))}
+        onDismiss={handleDismissAlert}
+        isMuted={isMuted}
+        onToggleMute={toggleMute}
       />
 
-      {/* Main Radar Layout: 2 Columns */}
+      {/* Main Radar Tactical Dashboard */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Left Column (2 Cols): Interactive Radar Map */}
+        {/* Radar Map Canvas with Restricted Airspace */}
         <div className="lg:col-span-2">
           <RadarMap
             telemetries={telemetries}
             sectors={sectors}
+            restrictedZones={DEFAULT_RESTRICTED_ZONES}
+            groundStations={GROUND_STATIONS}
             selectedDroneId={selectedDroneId}
             onSelectDrone={(id) => setSelectedDroneId(id)}
+            hasActiveIntrusion={hasActiveIntrusion}
           />
         </div>
 
-        {/* Right Column (1 Col): Tactical Telemetry HUD */}
+        {/* Tactical HUD & Telemetry Telemetry Cards */}
         <div className="lg:col-span-1">
           <TelemetryHUD
             selectedDrone={selectedDrone}
@@ -334,4 +479,3 @@ export const TelemetryPage: React.FC = () => {
     </div>
   );
 };
-

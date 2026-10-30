@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw, Calendar, Sparkles } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { TimeSlot } from '../types';
 
@@ -24,14 +24,13 @@ export const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  // Set default query window to current time + 1 hour through + 12 hours
+  const resetToCurrentWindow = () => {
     const now = new Date();
-    // Round up to next 30 mins
-    const ms = 1000 * 60 * 30;
-    const fromTime = new Date(Math.ceil(now.getTime() / ms) * ms + 60 * 60 * 1000); // now + 1 hour rounded
-    const toTime = new Date(fromTime.getTime() + 4 * 60 * 60 * 1000); // from + 4 hours
-    
-    // Format to YYYY-MM-DDThh:mm
+    const fromTime = new Date(now.getTime());
+    fromTime.setMinutes(0, 0, 0); // start of current hour
+    const toTime = new Date(fromTime.getTime() + 18 * 60 * 60 * 1000); // next 18 hours
+
     const toDatetimeLocal = (date: Date) => {
       const pad = (n: number) => n.toString().padStart(2, '0');
       return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
@@ -39,6 +38,10 @@ export const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 
     setFromDate(toDatetimeLocal(fromTime));
     setToDate(toDatetimeLocal(toTime));
+  };
+
+  useEffect(() => {
+    resetToCurrentWindow();
   }, []);
 
   const fetchAvailability = async () => {
@@ -69,7 +72,7 @@ export const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   if (!selectedSectorId) {
     return (
       <div className="rounded-2xl border border-utm-border bg-utm-card p-6 text-center">
-        <p className="text-sm text-utm-muted">Select a sector from the map to view availability</p>
+        <p className="text-sm text-utm-muted">Select a sector from the map above to view available airspace reservation windows.</p>
       </div>
     );
   }
@@ -86,7 +89,19 @@ export const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 
   return (
     <div className="rounded-2xl border border-utm-border bg-utm-card p-4">
-      <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Time Slots</h3>
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <Calendar className="h-3.5 w-3.5 text-brand-400" />
+          4D Airspace Time Slots
+        </h3>
+        <button
+          onClick={resetToCurrentWindow}
+          className="flex items-center gap-1 text-[11px] text-brand-400 hover:text-brand-300 font-medium"
+        >
+          <Sparkles className="h-3 w-3" />
+          Jump to Now
+        </button>
+      </div>
       
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1">
@@ -110,9 +125,10 @@ export const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
         <button 
           onClick={fetchAvailability}
           disabled={loading}
-          className="flex h-[38px] items-center justify-center rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 px-4 text-sm font-semibold text-white shadow-glow hover:opacity-90 disabled:opacity-50"
+          className="flex h-[38px] items-center justify-center rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 px-4 text-sm font-semibold text-white shadow-glow hover:opacity-90 disabled:opacity-50 gap-1.5"
         >
-          Check Availability
+          <RefreshCw className={clsx("h-3.5 w-3.5", loading && "animate-spin")} />
+          Check Slots
         </button>
       </div>
 
@@ -125,8 +141,15 @@ export const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
           <p className="text-sm text-red-400">{error}</p>
         </div>
       ) : slots.length === 0 ? (
-        <div className="flex h-32 items-center justify-center rounded-xl border border-utm-borderLight bg-utm-bg">
-          <p className="text-sm text-utm-muted">No slots in range</p>
+        <div className="flex flex-col items-center justify-center h-36 rounded-xl border border-utm-borderLight bg-utm-bg p-4 text-center">
+          <p className="text-sm text-slate-300 font-medium">No 30-minute slots found in selected range.</p>
+          <p className="text-xs text-slate-500 mt-1">Click "Jump to Now" above or broaden your date range to view upcoming reservation slots.</p>
+          <button
+            onClick={resetToCurrentWindow}
+            className="mt-3 rounded-lg bg-brand-500/10 border border-brand-500/30 px-3 py-1.5 text-xs text-brand-400 hover:bg-brand-500/20"
+          >
+            Show Today's Available Slots
+          </button>
         </div>
       ) : (
         <div className="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3 md:grid-cols-4">
@@ -148,6 +171,9 @@ export const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
               >
                 <span className="mb-1 text-[10px] opacity-80">{formatDateHeader(slot.start_time)}</span>
                 <span className="font-semibold">{formatTimeRange(slot.start_time, slot.end_time)}</span>
+                <span className={clsx("mt-1 text-[9px] font-bold", isBooked ? "text-red-400" : "text-emerald-400")}>
+                  {isBooked ? "BOOKED" : "AVAILABLE"}
+                </span>
               </button>
             );
           })}
